@@ -5,6 +5,11 @@
  * Use is subject to license terms, as specified in the LICENSE file.
  */
 
+/*
+ * TODO: Simple linear scan for now (works just well with a few prefixes).
+ * TBD on a better algorithm.
+ */
+
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
