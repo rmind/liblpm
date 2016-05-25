@@ -38,6 +38,7 @@
 typedef struct lpm_ent {
 	struct lpm_ent *next;
 	void *		val;
+	unsigned	len;
 	uint8_t		key[];
 } lpm_ent_t;
 
@@ -117,7 +118,7 @@ fnv1a_hash(const void *buf, size_t len)
 }
 
 static bool
-hashmap_rehash(lpm_hmap_t *hmap, unsigned size, size_t len)
+hashmap_rehash(lpm_hmap_t *hmap, unsigned size)
 {
 	lpm_ent_t **bucket;
 	unsigned hashsize;
@@ -133,11 +134,11 @@ hashmap_rehash(lpm_hmap_t *hmap, unsigned size, size_t len)
 
 		while (list) {
 			lpm_ent_t *entry = list;
-			const uint32_t hash = fnv1a_hash(entry->key, len);
+			uint32_t hash = fnv1a_hash(entry->key, entry->len);
 			const unsigned i = hash & (hashsize - 1);
 
 			list = entry->next;
-			entry->next = hmap->bucket[i];
+			entry->next = bucket[i];
 			bucket[i] = entry;
 		}
 	}
@@ -154,7 +155,7 @@ hashmap_insert(lpm_hmap_t *hmap, const void *key, size_t len)
 	const size_t entlen = offsetof(lpm_ent_t, key[len]);
 	lpm_ent_t *entry;
 
-	if (hmap->hashsize < target && !hashmap_rehash(hmap, target, len)) {
+	if (hmap->hashsize < target && !hashmap_rehash(hmap, target)) {
 		return NULL;
 	}
 	if ((entry = malloc(entlen)) != NULL) {
@@ -163,6 +164,8 @@ hashmap_insert(lpm_hmap_t *hmap, const void *key, size_t len)
 
 		memcpy(entry->key, key, len);
 		entry->next = hmap->bucket[i];
+		entry->len = len;
+
 		hmap->bucket[i] = entry;
 		hmap->nitems++;
 	}
@@ -177,7 +180,7 @@ hashmap_lookup(lpm_hmap_t *hmap, const void *key, size_t len)
 	lpm_ent_t *entry = hmap->bucket[i];
 
 	while (entry) {
-		if (memcmp(entry->key, key, len) == 0) {
+		if (entry->len == len && memcmp(entry->key, key, len) == 0) {
 			return entry;
 		}
 		entry = entry->next;
@@ -193,7 +196,7 @@ hashmap_remove(lpm_hmap_t *hmap, const void *key, size_t len)
 	lpm_ent_t *prev = NULL, *entry = hmap->bucket[i];
 
 	while (entry) {
-		if (memcmp(entry->key, key, len) == 0) {
+		if (entry->len == len && memcmp(entry->key, key, len) == 0) {
 			if (prev) {
 				prev->next = entry->next;
 			} else {
@@ -216,6 +219,7 @@ static inline void
 compute_prefix(const unsigned nwords, const uint32_t *addr,
     unsigned preflen, uint32_t *prefix)
 {
+	// XXX unaligned 32-bit fetch
 	for (unsigned i = 0; i < nwords; i++) {
 		if (preflen == 0) {
 			prefix[i] = 0;
@@ -254,7 +258,7 @@ lpm_insert(lpm_t *lpm, const void *addr,
 	entry = hashmap_insert(&lpm->prefix[preflen], prefix, len);
 	if (entry) {
 		const unsigned n = --preflen >> 5;
-		lpm->bitmask[n] |= 1U << (preflen & 31);
+		lpm->bitmask[n] |= 0x80000000U >> (preflen & 31);
 		entry->val = val;
 		return 0;
 	}
@@ -287,11 +291,12 @@ void *
 lpm_lookup(lpm_t *lpm, const void *addr, size_t len)
 {
 	const unsigned nwords = LPM_TO_WORDS(len);
+	unsigned i, n = nwords;
 	uint32_t prefix[nwords];
 
-	for (unsigned i, n = 0; n < nwords; n++) {
+	while (n--) {
 		while ((i = ffs(lpm->bitmask[n])) != 0) {
-			const unsigned preflen = (32 * n) + i;
+			const unsigned preflen = (32 * n) + (32 - --i);
 			lpm_hmap_t *hmap = &lpm->prefix[preflen];
 			lpm_ent_t *entry;
 
@@ -300,7 +305,7 @@ lpm_lookup(lpm_t *lpm, const void *addr, size_t len)
 			if (entry) {
 				return entry->val;
 			}
-			lpm->bitmask[n] &= ~(1U << --i);
+			lpm->bitmask[n] &= ~(1U << i);
 		}
 	}
 	return lpm->defval;

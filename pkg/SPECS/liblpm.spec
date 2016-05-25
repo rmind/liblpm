@@ -16,6 +16,9 @@ Longest Prefix Match (LPM) library supporting IPv4 and IPv6.
 %prep
 %setup -q -n src
 
+%check
+make tests
+
 %build
 make %{?_smp_mflags} LIBDIR=%{_libdir}
 
