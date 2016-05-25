@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <inttypes.h>
 #include <assert.h>
 
@@ -99,10 +100,38 @@ ipv4_basic_test(void)
 	lpm_destroy(lpm);
 }
 
+static void
+ipv4_basic_random(void)
+{
+	const unsigned nitems = 1024;
+	lpm_t *lpm;
+	uint32_t addr[nitems];
+
+	lpm = lpm_create();
+	assert(lpm != NULL);
+
+	for (unsigned i = 0; i < nitems; i++) {
+		uint32_t x;
+		int ret;
+
+		x = addr[i] = random();
+		ret = lpm_insert(lpm, &addr[i], 4, 32, (void *)(uintptr_t)x);
+		assert(ret == 0);
+	}
+	for (unsigned i = 0; i < nitems; i++) {
+		const uint32_t x = addr[i];
+		void *val = lpm_lookup(lpm, &x, 4);
+		assert((uintptr_t)val == x);
+	}
+
+	lpm_destroy(lpm);
+}
+
 int
 main(void)
 {
 	ipv4_basic_test();
+	ipv4_basic_random();
 	puts("ok");
 	return 0;
 }
