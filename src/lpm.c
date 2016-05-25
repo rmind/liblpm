@@ -24,11 +24,9 @@
 
 #include "lpm.h"
 
-#define	MAXPREF_TO_ALEN(x)	((x) >> 3)
-#define	ALEN_TO_NWORDS(x)	((x) >> 2)
-
 #define	LPM_MAX_PREFIX		(128)
 #define	LPM_MAX_WORDS		(LPM_MAX_PREFIX >> 5)
+#define	LPM_TO_WORDS(x)		((x) >> 2)
 #define	LPM_HASH_STEP		(8)
 
 #ifdef DEBUG
@@ -51,39 +49,25 @@ typedef struct {
 
 struct lpm {
 	uint32_t	bitmask[LPM_MAX_WORDS];
-	unsigned	maxpref;
 	void *		defval;
-	lpm_hmap_t	prefix[];
+	lpm_hmap_t	prefix[LPM_MAX_PREFIX];
 };
 
 lpm_t *
-lpm_create(lpm_af_t af)
+lpm_create(void)
 {
-	unsigned maxpref;
 	lpm_t *lpm;
 
-	switch (af) {
-	case LPM_INET4:
-		maxpref = 32;
-		break;
-	case LPM_INET6:
-		maxpref = 128;
-		break;
-	default:
+	if ((lpm = calloc(1, sizeof(lpm_t))) == NULL) {
 		return NULL;
 	}
-	lpm = calloc(1, offsetof(struct lpm, prefix[maxpref]));
-	if (!lpm) {
-		return NULL;
-	}
-	lpm->maxpref = maxpref;
 	return lpm;
 }
 
 void
-lpm_destroy(lpm_t *lpm)
+lpm_flush(lpm_t *lpm)
 {
-	for (unsigned n = 0; n < lpm->maxpref; n++) {
+	for (unsigned n = 0; n < LPM_MAX_PREFIX; n++) {
 		lpm_hmap_t *hmap = &lpm->prefix[n];
 
 		if (!hmap->hashsize) {
@@ -101,7 +85,18 @@ lpm_destroy(lpm_t *lpm)
 			}
 		}
 		free(hmap->bucket);
+		hmap->bucket = NULL;
+		hmap->hashsize = 0;
+		hmap->nitems = 0;
 	}
+	memset(lpm->bitmask, 0, sizeof(lpm->bitmask));
+	lpm->defval = NULL;
+}
+
+void
+lpm_destroy(lpm_t *lpm)
+{
+	lpm_flush(lpm);
 	free(lpm);
 }
 
@@ -147,6 +142,7 @@ hashmap_rehash(lpm_hmap_t *hmap, unsigned size, size_t len)
 		}
 	}
 	hmap->hashsize = hashsize;
+	free(hmap->bucket); // may be NULL
 	hmap->bucket = bucket;
 	return true;
 }
@@ -189,6 +185,29 @@ hashmap_lookup(lpm_hmap_t *hmap, const void *key, size_t len)
 	return NULL;
 }
 
+static int
+hashmap_remove(lpm_hmap_t *hmap, const void *key, size_t len)
+{
+	const uint32_t hash = fnv1a_hash(key, len);
+	const unsigned i = hash & (hmap->hashsize - 1);
+	lpm_ent_t *prev = NULL, *entry = hmap->bucket[i];
+
+	while (entry) {
+		if (memcmp(entry->key, key, len) == 0) {
+			if (prev) {
+				prev->next = entry->next;
+			} else {
+				hmap->bucket[i] = entry->next;
+			}
+			free(entry);
+			return 0;
+		}
+		prev = entry;
+		entry = entry->next;
+	}
+	return -1;
+}
+
 /*
  * compute_prefix: given the address and prefix length, compute and
  * return the address prefix.
@@ -214,15 +233,15 @@ compute_prefix(const unsigned nwords, const uint32_t *addr,
 }
 
 /*
- * lpm_add: insert the CIDR into the LPM table.
+ * lpm_insert: insert the CIDR into the LPM table.
  *
  * => Returns zero on success and -1 on failure.
  */
 int
-lpm_add(lpm_t *lpm, const uint32_t *addr, unsigned preflen, void *val)
+lpm_insert(lpm_t *lpm, const void *addr,
+    size_t len, unsigned preflen, void *val)
 {
-	const unsigned alen = MAXPREF_TO_ALEN(lpm->maxpref);
-	const unsigned nwords = ALEN_TO_NWORDS(alen);
+	const unsigned nwords = LPM_TO_WORDS(len);
 	uint32_t prefix[nwords];
 	lpm_ent_t *entry;
 
@@ -232,7 +251,7 @@ lpm_add(lpm_t *lpm, const uint32_t *addr, unsigned preflen, void *val)
 		return 0;
 	}
 	compute_prefix(nwords, addr, preflen, prefix);
-	entry = hashmap_insert(&lpm->prefix[preflen], prefix, alen);
+	entry = hashmap_insert(&lpm->prefix[preflen], prefix, len);
 	if (entry) {
 		const unsigned n = --preflen >> 5;
 		lpm->bitmask[n] |= 1U << (preflen & 31);
@@ -243,15 +262,31 @@ lpm_add(lpm_t *lpm, const uint32_t *addr, unsigned preflen, void *val)
 }
 
 /*
+ * lpm_remove: remove the specified prefix.
+ */
+int
+lpm_remove(lpm_t *lpm, const void *addr, size_t len, unsigned preflen)
+{
+	const unsigned nwords = LPM_TO_WORDS(len);
+	uint32_t prefix[nwords];
+
+	if (preflen == 0) {
+		lpm->defval = NULL;
+		return 0;
+	}
+	compute_prefix(nwords, addr, preflen, prefix);
+	return hashmap_remove(&lpm->prefix[preflen], prefix, len);
+}
+
+/*
  * lpm_lookup: find the longest matching prefix given the IP address.
  *
  * => Returns the associated value on success or NULL on failure.
  */
 void *
-lpm_lookup(lpm_t *lpm, const uint32_t *addr)
+lpm_lookup(lpm_t *lpm, const void *addr, size_t len)
 {
-	const unsigned alen = MAXPREF_TO_ALEN(lpm->maxpref);
-	const unsigned nwords = ALEN_TO_NWORDS(alen);
+	const unsigned nwords = LPM_TO_WORDS(len);
 	uint32_t prefix[nwords];
 
 	for (unsigned i, n = 0; n < nwords; n++) {
@@ -261,7 +296,7 @@ lpm_lookup(lpm_t *lpm, const uint32_t *addr)
 			lpm_ent_t *entry;
 
 			compute_prefix(nwords, addr, preflen, prefix);
-			entry = hashmap_lookup(hmap, prefix, alen);
+			entry = hashmap_lookup(hmap, prefix, len);
 			if (entry) {
 				return entry->val;
 			}
@@ -278,7 +313,7 @@ lpm_lookup(lpm_t *lpm, const uint32_t *addr)
  * => Returns 0 on success or -1 on failure.
  */
 int
-lpm_strtobin(const char *cidr, lpm_af_t *af, uint32_t *addr, unsigned *preflen)
+lpm_strtobin(const char *cidr, void *addr, size_t *len, unsigned *preflen)
 {
 	char *p, buf[INET6_ADDRSTRLEN];
 
@@ -290,18 +325,18 @@ lpm_strtobin(const char *cidr, lpm_af_t *af, uint32_t *addr, unsigned *preflen)
 		*preflen = atoi(&buf[off + 1]);
 		buf[off] = '\0';
 	} else {
-		*preflen = 128;
+		*preflen = LPM_MAX_PREFIX;
 	}
 
 	if (inet_pton(AF_INET6, buf, addr) == 1) {
-		*af = LPM_INET6;
+		*len = 16;
 		return 0;
 	}
 	if (inet_pton(AF_INET, buf, addr) == 1) {
-		if (*preflen == 128) {
+		if (*preflen == LPM_MAX_PREFIX) {
 			*preflen = 32;
 		}
-		*af = LPM_INET4;
+		*len = 4;
 		return 0;
 	}
 	return -1;

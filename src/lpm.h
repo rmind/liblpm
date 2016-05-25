@@ -11,13 +11,15 @@
 __BEGIN_DECLS
 
 typedef struct lpm lpm_t;
-typedef enum { LPM_INET4, LPM_INET6 } lpm_af_t;
 
-lpm_t *		lpm_create(lpm_af_t);
+lpm_t *		lpm_create(void);
 void		lpm_destroy(lpm_t *);
-int		lpm_add(lpm_t *, const uint32_t *, unsigned, void *);
-void *		lpm_lookup(lpm_t *, const uint32_t *);
-int		lpm_strtobin(const char *, lpm_af_t *, uint32_t *, unsigned *);
+void		lpm_flush(lpm_t *);
+
+int		lpm_insert(lpm_t *, const void *, size_t, unsigned, void *);
+int		lpm_remove(lpm_t *, const void *, size_t, unsigned);
+void *		lpm_lookup(lpm_t *, const void *, size_t);
+int		lpm_strtobin(const char *, void *, size_t *, unsigned *);
 
 __END_DECLS
 
