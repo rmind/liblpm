@@ -14,8 +14,11 @@ The implementation is written in C99 and is distributed under the
 * `void lpm_destroy(lpm_t *lpm)`
   * Destroy the LPM object and any entries in it.
 
-* `void lpm_flush(lpm_t *lpm)`
-  * Remove all entries in the LPM object.
+* `void lpm_flush(lpm_t *lpm, lpm_dtor_t *dtor, void *arg)`
+  * Remove all entries in the LPM object.  It calls the passed destructor
+  function, if it is not `NULL`, as it traverses the entries.  The destructor
+  function prototype:
+  * `typedef void (*lpm_dtor_t)(void *arg, const void *key, size_t len, void *val);`
 
 * `int lpm_insert(lpm_t *lpm, const void *addr, size_t len, unsigned preflen, void *val)`
   * Insert the network address of a given length and prefix length into
