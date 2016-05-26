@@ -3,9 +3,8 @@
 !!! WORK IN PROGRESS !!!
 
 Longest Prefix Match (LPM) library supporting IPv4 and IPv6.
-
-The implementation is written in C11 and is distributed under the
-2-clause BSD license.
+The implementation is written in C99 and is distributed under the
+2-clause BSD license.  Additionally, bindings are available for *Lua*.
 
 ## API
 
@@ -21,8 +20,8 @@ The implementation is written in C11 and is distributed under the
 * `int lpm_insert(lpm_t *lpm, const void *addr, size_t len, unsigned preflen, void *val)`
   * Insert the network address of a given length and prefix length into
   the LPM object and associate the entry with specified pointer value.
-  Note: the address must be in the network byte order.  Returns 0 on
-  success or -1 on failure.
+  The address must be in the network byte order.  Returns 0 on success
+  or -1 on failure.
 
 * `int lpm_remove(lpm_t *lpm, const void *addr, size_t len, unsigned preflen)`
   * Remove the network address of a given length and prefix length from
@@ -36,6 +35,24 @@ The implementation is written in C11 and is distributed under the
   * Convert a string in CIDR notation to a binary address, to be stored in
   the `addr` buffer and its length in `len`, as well as the prefix length (if
   not specified, then the maximum length of the address family will be set).
-  The address is stored in the network byte order and its buffer provide at
-  least 4 or 16 bytes (depending on the address family).  Returns zero on
-  success and -1 on failure.
+  The address will be stored in the network byte order.  Its buffer must
+  provide at least 4 or 16 bytes (depending on the address family).  Returns
+  zero on success and -1 on failure.
+
+## Lua example
+
+```lua
+local lpm = require("lpm")
+
+local acl = lpm.new()
+local some_info = { val = "test" }
+
+local addr, preflen = lpm:tobin("10.0.0.0/24")
+if not acl:insert(addr, preflen, some_info) then
+  print("acl:insert() failed")
+  return -1
+end
+
+local ret = acl:lookup(lpm:tobin("10.0.0.100"))
+print(ret.val)
+```

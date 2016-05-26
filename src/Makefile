@@ -17,10 +17,19 @@ CFLAGS+=	-DNDEBUG
 LDFLAGS=	-flto
 endif
 
-LIB=		liblpm
+ifeq ($(MAKECMDGOALS),lua)
+# Lua module
+CFLAGS+=	$(shell pkg-config --cflags lua)
+LDFLAGS+=	$(shell pkg-config --cflags --libs lua)
+LDFLAGS+=	-llpm
+OBJS=		lpm_lua.o
+LIB=		lpm
+else
+# C library
 INCS=		lpm.h
-
 OBJS=		lpm.o
+LIB=		liblpm
+endif
 
 $(LIB).la:	LDFLAGS+=	-rpath $(LIBDIR)
 install/%.la:	ILIBDIR=	$(DESTDIR)/$(LIBDIR)
@@ -28,6 +37,14 @@ install:	IINCDIR=	$(DESTDIR)/$(INCDIR)/
 #install:	IMANDIR=	$(DESTDIR)/$(MANDIR)/man3/
 
 lib: $(LIB).la
+
+lua: $(LIB).so
+
+%.o: %.c
+	$(CC) $(CFLAGS) -fPIC -c $<
+
+$(LIB).so: $(OBJS)
+	$(CC) $(LDFLAGS) -fPIC -shared -o $@ $(notdir $^)
 
 %.lo: %.c
 	libtool --mode=compile --tag CC $(CC) $(CFLAGS) -c $<
