@@ -5,6 +5,7 @@
  * Use is subject to license terms, as specified in the LICENSE file.
  */
 
+#include <stdlib.h>
 #include <inttypes.h>
 
 #include <lua.h>
@@ -38,10 +39,15 @@ static const struct luaL_reg lpm_methods[] = {
 };
 
 #define	LPM_METATABLE	"lpm-obj-methods"
+#define	LPM_VALID	((void *)(uintptr_t)0x1)
 
 typedef struct {
 	lpm_t *		lpm;
 } lpm_lua_t;
+
+typedef struct {
+	int		refidx;
+} lpm_luaref_t;
 
 int
 luaopen_lpm(lua_State *L)
@@ -122,7 +128,7 @@ static int
 lua_lpm_gc(lua_State *L)
 {
 	lpm_lua_t *lctx = lua_lpm_getctx(L);
-	/* FIXME release the Lua references */
+	lua_lpm_flush(L);
 	lpm_destroy(lctx->lpm);
 	return 0;
 }
@@ -134,7 +140,7 @@ lua_lpm_insert(lua_State *L)
 	const uint8_t *addr;
 	unsigned preflen;
 	size_t len;
-	void *ref;
+	lpm_luaref_t *ref;
 
 	addr = lua_tolstring(L, 2, &len);
 	luaL_argcheck(L, addr, 2,
@@ -144,9 +150,15 @@ lua_lpm_insert(lua_State *L)
 	luaL_argcheck(L, preflen <= 128, 3,
 	    "`preflen' cannot be greater than 128");
 
-	lua_pushvalue(L, 4);
-	ref = (void *)(intptr_t)luaL_ref(L, LUA_REGISTRYINDEX);
-
+	if (!lua_isnoneornil(L, 4)) {
+		if ((ref = malloc(sizeof(lpm_luaref_t))) == NULL) {
+			return 0;
+		}
+		lua_pushvalue(L, 4);
+		ref->refidx = luaL_ref(L, LUA_REGISTRYINDEX);
+	} else {
+		ref = LPM_VALID;
+	}
 	if (lpm_insert(lctx->lpm, addr, len, preflen, ref) == 0) {
 		lua_pushboolean(L, 1);
 		return 1;
@@ -161,7 +173,7 @@ lua_lpm_remove(lua_State *L)
 	const uint8_t *addr;
 	unsigned preflen;
 	size_t len;
-	void *ref;
+	lpm_luaref_t *ref;
 
 	addr = lua_tolstring(L, 2, &len);
 	luaL_argcheck(L, addr, 2,
@@ -171,8 +183,10 @@ lua_lpm_remove(lua_State *L)
 	luaL_argcheck(L, preflen <= 128, 3,
 	    "`preflen' cannot be greater than 128");
 
-	if ((ref = lpm_lookup(lctx->lpm, addr, len)) != NULL) {
-		luaL_unref(L, LUA_REGISTRYINDEX, (intptr_t)ref);
+	ref = lpm_lookup(lctx->lpm, addr, len);
+	if (ref && ref != LPM_VALID) { // XXX
+		luaL_unref(L, LUA_REGISTRYINDEX, ref->refidx);
+		free(ref);
 	}
 	if (lpm_remove(lctx->lpm, addr, len, preflen) == 0) {
 		lua_pushboolean(L, 1);
@@ -187,22 +201,37 @@ lua_lpm_lookup(lua_State *L)
 	lpm_lua_t *lctx = lua_lpm_getctx(L);
 	const uint8_t *addr;
 	size_t len;
-	void *ref;
+	lpm_luaref_t *ref;
 
 	addr = lua_tolstring(L, 2, &len);
 	luaL_argcheck(L, addr, 2, "`addr' binary string expected");
 
 	if ((ref = lpm_lookup(lctx->lpm, addr, len)) != NULL) {
-		lua_rawgeti(L, LUA_REGISTRYINDEX, (intptr_t)ref);
+		if (ref == LPM_VALID) {
+			lua_pushboolean(L, 1);
+		} else {
+			lua_rawgeti(L, LUA_REGISTRYINDEX, ref->refidx);
+		}
 		return 1;
 	}
 	return 0;
+}
+
+static void
+lua_lpm_unref(void *arg, const void *key, size_t len, void *val)
+{
+	if (val != LPM_VALID) {
+		lua_State *L = arg;
+		lpm_luaref_t *ref = val;
+		luaL_unref(L, LUA_REGISTRYINDEX, ref->refidx);
+		free(ref);
+	}
 }
 
 static int
 lua_lpm_flush(lua_State *L)
 {
 	lpm_lua_t *lctx = lua_lpm_getctx(L);
-	lpm_flush(lctx->lpm);
+	lpm_flush(lctx->lpm, lua_lpm_unref, L);
 	return 0;
 }

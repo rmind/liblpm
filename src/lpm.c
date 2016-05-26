@@ -66,7 +66,7 @@ lpm_create(void)
 }
 
 void
-lpm_flush(lpm_t *lpm)
+lpm_flush(lpm_t *lpm, lpm_dtor_t dtor, void *arg)
 {
 	for (unsigned n = 0; n < LPM_MAX_PREFIX; n++) {
 		lpm_hmap_t *hmap = &lpm->prefix[n];
@@ -81,6 +81,10 @@ lpm_flush(lpm_t *lpm)
 			while (entry) {
 				lpm_ent_t *next = entry->next;
 
+				if (dtor) {
+					dtor(arg, entry->key,
+					    entry->len, entry->val);
+				}
 				free(entry);
 				entry = next;
 			}
@@ -97,7 +101,7 @@ lpm_flush(lpm_t *lpm)
 void
 lpm_destroy(lpm_t *lpm)
 {
-	lpm_flush(lpm);
+	lpm_flush(lpm, NULL, NULL);
 	free(lpm);
 }
 
