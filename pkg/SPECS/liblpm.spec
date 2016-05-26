@@ -1,3 +1,6 @@
+%define luaver 5.1
+%define lualibdir %{_libdir}/lua/%{luaver}
+
 Name:		liblpm
 Version:	0.1
 Release:	1%{?dist}
@@ -9,6 +12,8 @@ Source0:	liblpm.tar.gz
 
 BuildRequires:	make
 BuildRequires:	libtool
+BuildRequires:	lua >= %{luaver}, lua-devel >= %{luaver}
+Requires:	lua >= %{luaver}
 
 %description
 Longest Prefix Match (LPM) library supporting IPv4 and IPv6.
@@ -21,6 +26,7 @@ make tests
 
 %build
 make %{?_smp_mflags} LIBDIR=%{_libdir}
+make %{?_smp_mflags} lua LIBDIR=%{lualibdir}
 
 %install
 make install \
@@ -28,10 +34,27 @@ make install \
     LIBDIR=%{_libdir} \
     INCDIR=%{_includedir} \
     MANDIR=%{_mandir}
+make lua_install \
+    DESTDIR=%{buildroot} \
+    LIBDIR=%{lualibdir}
 
 %files
 %{_libdir}/*
 %{_includedir}/*
 #%{_mandir}/*
+
+#
+# Lua module.
+#
+%package lua
+Summary: Lua bindings for the LPM library
+Group: Development/Libraries
+Requires: %{name} = %{version}-%{release}
+
+%description lua
+Lua bindings for the LPM library.
+
+%files lua
+%{lualibdir}/*
 
 %changelog

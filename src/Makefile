@@ -60,6 +60,10 @@ install: $(addprefix install/,$(LIB).la)
 	mkdir -p $(IINCDIR) && install -c $(INCS) $(IINCDIR)
 	#mkdir -p $(IMANDIR) && install -c $(MANS) $(IMANDIR)
 
+lua_install:
+	mkdir -p $(DESTDIR)/$(LIBDIR)
+	install -c lpm.so $(DESTDIR)/$(LIBDIR)
+
 tests: $(OBJS) t_lpm.o
 	$(CC) $(CFLAGS) $^ -o t_lpm
 	./t_lpm
@@ -67,6 +71,6 @@ tests: $(OBJS) t_lpm.o
 
 clean:
 	libtool --mode=clean rm
-	@ rm -rf .libs *.o *.lo *.la t_lpm
+	@ rm -rf .libs *.so *.o *.lo *.la t_lpm
 
-.PHONY: all lib install tests clean
+.PHONY: all lib lua install tests clean
