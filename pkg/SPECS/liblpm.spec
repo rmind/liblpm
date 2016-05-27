@@ -2,7 +2,7 @@
 %define lualibdir %{_libdir}/lua/%{luaver}
 
 Name:		liblpm
-Version:	0.1
+Version:	0.1.1
 Release:	1%{?dist}
 Summary:	Longest Prefix Match (LPM) library
 Group:		System Environment/Libraries

@@ -51,7 +51,7 @@ typedef struct {
 struct lpm {
 	uint32_t	bitmask[LPM_MAX_WORDS];
 	void *		defval;
-	lpm_hmap_t	prefix[LPM_MAX_PREFIX];
+	lpm_hmap_t	prefix[LPM_MAX_PREFIX + 1];
 };
 
 lpm_t *

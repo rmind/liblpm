@@ -107,7 +107,7 @@ lua_lpm_tobin(lua_State *L)
 	unsigned preflen;
 	size_t len;
 
-	cidr = lua_tolstring(L, 2, &len);
+	cidr = lua_tolstring(L, 1, &len);
 	if (!cidr || lpm_strtobin(cidr, addr, &len, &preflen) == -1) {
 		return 0;
 	}
@@ -143,12 +143,11 @@ lua_lpm_insert(lua_State *L)
 	lpm_luaref_t *ref;
 
 	addr = lua_tolstring(L, 2, &len);
-	luaL_argcheck(L, addr, 2,
-	    "`addr' binary string expected");
+	luaL_argcheck(L, addr && (len == 4 || len == 16), 2,
+	    "`addr' binary string of 4 or 16 bytes expected");
 
 	preflen = lua_tointeger(L, 3);
-	luaL_argcheck(L, preflen <= 128, 3,
-	    "`preflen' cannot be greater than 128");
+	luaL_argcheck(L, preflen <= 128, 3, "invalid `prefix-len'");
 
 	if (!lua_isnoneornil(L, 4)) {
 		if ((ref = malloc(sizeof(lpm_luaref_t))) == NULL) {
@@ -176,12 +175,11 @@ lua_lpm_remove(lua_State *L)
 	lpm_luaref_t *ref;
 
 	addr = lua_tolstring(L, 2, &len);
-	luaL_argcheck(L, addr, 2,
-	    "`addr' binary string expected");
+	luaL_argcheck(L, addr && (len == 4 || len == 16), 2,
+	    "`addr' binary string of 4 or 16 bytes expected");
 
 	preflen = lua_tointeger(L, 3);
-	luaL_argcheck(L, preflen <= 128, 3,
-	    "`preflen' cannot be greater than 128");
+	luaL_argcheck(L, preflen <= 128, 3, "invalid `prefix-len'");
 
 	ref = lpm_lookup(lctx->lpm, addr, len);
 	if (ref && ref != LPM_VALID) { // XXX
@@ -204,7 +202,8 @@ lua_lpm_lookup(lua_State *L)
 	lpm_luaref_t *ref;
 
 	addr = lua_tolstring(L, 2, &len);
-	luaL_argcheck(L, addr, 2, "`addr' binary string expected");
+	luaL_argcheck(L, addr && (len == 4 || len == 16), 2,
+	    "`addr' binary string of 4 or 16 bytes expected");
 
 	if ((ref = lpm_lookup(lctx->lpm, addr, len)) != NULL) {
 		if (ref == LPM_VALID) {

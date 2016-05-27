@@ -66,7 +66,7 @@ lua_install:
 
 tests: $(OBJS) t_lpm.o
 	$(CC) $(CFLAGS) $^ -o t_lpm
-	./t_lpm
+	MALLOC_CHECK_=3 ./t_lpm
 
 clean:
 	libtool --mode=clean rm
