@@ -68,7 +68,7 @@ lpm_create(void)
 void
 lpm_flush(lpm_t *lpm, lpm_dtor_t dtor, void *arg)
 {
-	for (unsigned n = 0; n < LPM_MAX_PREFIX; n++) {
+	for (unsigned n = 0; n <= LPM_MAX_PREFIX; n++) {
 		lpm_hmap_t *hmap = &lpm->prefix[n];
 
 		if (!hmap->hashsize) {
