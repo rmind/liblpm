@@ -8,7 +8,7 @@ The implementation is written in C99 and is distributed under the
 
 ## API
 
-* `lpm_t *lpm_create()`
+* `lpm_t *lpm_create(void)`
   * Construct a new LPM object.
 
 * `void lpm_destroy(lpm_t *lpm)`
@@ -50,12 +50,12 @@ local lpm = require("lpm")
 local acl = lpm.new()
 local some_info = { val = "test" }
 
-local addr, preflen = lpm:tobin("10.0.0.0/24")
+local addr, preflen = lpm.tobin("10.0.0.0/24")
 if not acl:insert(addr, preflen, some_info) then
   print("acl:insert() failed")
   return -1
 end
 
-local ret = acl:lookup(lpm:tobin("10.0.0.100"))
+local ret = acl:lookup(lpm.tobin("10.0.0.100"))
 print(ret.val)
 ```
