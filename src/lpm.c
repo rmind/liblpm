@@ -299,7 +299,9 @@ lpm_lookup(lpm_t *lpm, const void *addr, size_t len)
 	uint32_t prefix[nwords];
 
 	while (n--) {
-		while ((i = ffs(lpm->bitmask[n])) != 0) {
+		uint32_t bitmask = lpm->bitmask[n];
+
+		while ((i = ffs(bitmask)) != 0) {
 			const unsigned preflen = (32 * n) + (32 - --i);
 			lpm_hmap_t *hmap = &lpm->prefix[preflen];
 			lpm_ent_t *entry;
@@ -309,7 +311,7 @@ lpm_lookup(lpm_t *lpm, const void *addr, size_t len)
 			if (entry) {
 				return entry->val;
 			}
-			lpm->bitmask[n] &= ~(1U << i);
+			bitmask &= ~(1U << i);
 		}
 	}
 	return lpm->defval;
