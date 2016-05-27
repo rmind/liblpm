@@ -127,11 +127,84 @@ ipv4_basic_random(void)
 	lpm_destroy(lpm);
 }
 
+static void
+ipv6_basic_test(void)
+{
+	lpm_t *lpm;
+	uint32_t addr;
+	size_t len;
+	unsigned pref;
+	void *val;
+	int ret;
+
+	lpm = lpm_create();
+	assert(lpm != NULL);
+
+	lpm_strtobin("abcd:8000::/17", &addr, &len, &pref);
+	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x100);
+	assert(ret == 0);
+
+	lpm_strtobin("abcd:8000::/17", &addr, &len, &pref);
+	val = lpm_lookup(lpm, &addr, len);
+	assert(val == (void *)0x100);
+
+	lpm_strtobin("abcd::/16", &addr, &len, &pref);
+	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x101);
+	assert(ret == 0);
+
+	lpm_strtobin("abcd:abcd::/32", &addr, &len, &pref);
+	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x102);
+	assert(ret == 0);
+
+	lpm_strtobin("dddd:abcd::abcd/128", &addr, &len, &pref);
+	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x103);
+	assert(ret == 0);
+
+	lpm_strtobin("aaaa:bbbb:cccc:dddd:abcd:8000::/81", &addr, &len, &pref);
+	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x104);
+	assert(ret == 0);
+
+	lpm_strtobin("aaaa:bbbb:cccc:dddd:abcd::/80", &addr, &len, &pref);
+	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x105);
+	assert(ret == 0);
+
+	lpm_strtobin("ffff:ffff:ffff:ffff::/64", &addr, &len, &pref);
+	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x106);
+	assert(ret == 0);
+
+	lpm_strtobin("abcd:ffff::abcd", &addr, &len, &pref);
+	val = lpm_lookup(lpm, &addr, len);
+	assert(val == (void *)0x100);
+
+	lpm_strtobin("abcd:0000::abcd", &addr, &len, &pref);
+	val = lpm_lookup(lpm, &addr, len);
+	assert(val == (void *)0x101);
+
+	lpm_strtobin("aaaa:bbbb:cccc:dddd:abcd:ffff::abcd", &addr, &len, &pref);
+	val = lpm_lookup(lpm, &addr, len);
+	assert(val == (void *)0x104);
+
+	lpm_strtobin("aaaa:bbbb:cccc:dddd:abcd::abcd", &addr, &len, &pref);
+	val = lpm_lookup(lpm, &addr, len);
+	assert(val == (void *)0x105);
+
+	lpm_strtobin("ffff:ffff:ffff:ffff::", &addr, &len, &pref);
+	val = lpm_lookup(lpm, &addr, len);
+	assert(val == (void *)0x106);
+
+	lpm_strtobin("ffff:ffff:ffff:ffff::abcd", &addr, &len, &pref);
+	val = lpm_lookup(lpm, &addr, len);
+	assert(val == (void *)0x106);
+
+	lpm_destroy(lpm);
+}
+
 int
 main(void)
 {
 	ipv4_basic_test();
 	ipv4_basic_random();
+	ipv6_basic_test();
 	puts("ok");
 	return 0;
 }
