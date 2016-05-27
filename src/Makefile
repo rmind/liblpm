@@ -20,7 +20,7 @@ ifeq ($(MAKECMDGOALS),lua)
 # Lua module
 CFLAGS+=	$(shell pkg-config --cflags lua)
 LDFLAGS+=	$(shell pkg-config --cflags --libs lua)
-LDFLAGS+=	-llpm
+LDFLAGS+=	-L.libs -llpm
 OBJS=		lpm_lua.o
 LIB=		lpm
 else
@@ -67,7 +67,6 @@ lua_install:
 tests: $(OBJS) t_lpm.o
 	$(CC) $(CFLAGS) $^ -o t_lpm
 	./t_lpm
-	lua ./t_lpm.lua
 
 clean:
 	libtool --mode=clean rm
