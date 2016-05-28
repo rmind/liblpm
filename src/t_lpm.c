@@ -140,61 +140,85 @@ ipv6_basic_test(void)
 	lpm = lpm_create();
 	assert(lpm != NULL);
 
-	lpm_strtobin("abcd:8000::/17", &addr, &len, &pref);
+	lpm_strtobin("abcd:8000::1", &addr, &len, &pref);
+	val = lpm_lookup(lpm, &addr, len);
+	assert(val == NULL);
+
+	lpm_strtobin("::/0", &addr, &len, &pref);
 	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x100);
 	assert(ret == 0);
 
-	lpm_strtobin("abcd:8000::/17", &addr, &len, &pref);
+	lpm_strtobin("abcd:8000::1", &addr, &len, &pref);
 	val = lpm_lookup(lpm, &addr, len);
 	assert(val == (void *)0x100);
 
-	lpm_strtobin("abcd::/16", &addr, &len, &pref);
+	lpm_strtobin("abcd:8000::/17", &addr, &len, &pref);
 	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x101);
 	assert(ret == 0);
 
-	lpm_strtobin("abcd:abcd::/32", &addr, &len, &pref);
+	lpm_strtobin("abcd:8000::1", &addr, &len, &pref);
+	val = lpm_lookup(lpm, &addr, len);
+	assert(val == (void *)0x101);
+
+	lpm_strtobin("abcd::/16", &addr, &len, &pref);
 	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x102);
 	assert(ret == 0);
 
-	lpm_strtobin("dddd:abcd::abcd/128", &addr, &len, &pref);
+	lpm_strtobin("abcd:abcd::/32", &addr, &len, &pref);
 	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x103);
 	assert(ret == 0);
 
-	lpm_strtobin("aaaa:bbbb:cccc:dddd:abcd:8000::/81", &addr, &len, &pref);
+	lpm_strtobin("dddd:abcd::abcd/128", &addr, &len, &pref);
 	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x104);
 	assert(ret == 0);
 
-	lpm_strtobin("aaaa:bbbb:cccc:dddd:abcd::/80", &addr, &len, &pref);
+	lpm_strtobin("aaaa:bbbb:cccc:dddd:abcd:8000::/81", &addr, &len, &pref);
 	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x105);
 	assert(ret == 0);
 
-	lpm_strtobin("ffff:ffff:ffff:ffff::/64", &addr, &len, &pref);
+	lpm_strtobin("aaaa:bbbb:cccc:dddd:abcd::/80", &addr, &len, &pref);
 	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x106);
+	assert(ret == 0);
+
+	lpm_strtobin("ffff:ffff:ffff:ffff::/64", &addr, &len, &pref);
+	ret = lpm_insert(lpm, &addr, len, pref, (void *)0x107);
 	assert(ret == 0);
 
 	lpm_strtobin("abcd:ffff::abcd", &addr, &len, &pref);
 	val = lpm_lookup(lpm, &addr, len);
-	assert(val == (void *)0x100);
+	assert(val == (void *)0x101);
 
 	lpm_strtobin("abcd:0000::abcd", &addr, &len, &pref);
 	val = lpm_lookup(lpm, &addr, len);
-	assert(val == (void *)0x101);
+	assert(val == (void *)0x102);
 
-	lpm_strtobin("aaaa:bbbb:cccc:dddd:abcd:ffff::abcd", &addr, &len, &pref);
+	lpm_strtobin("abcd:abcd::abc0", &addr, &len, &pref);
+	val = lpm_lookup(lpm, &addr, len);
+	assert(val == (void *)0x103);
+
+	lpm_strtobin("dddd:abcd::abcd", &addr, &len, &pref);
 	val = lpm_lookup(lpm, &addr, len);
 	assert(val == (void *)0x104);
 
-	lpm_strtobin("aaaa:bbbb:cccc:dddd:abcd::abcd", &addr, &len, &pref);
+	lpm_strtobin("aaaa:bbbb:cccc:dddd:abcd:ffff::abcd", &addr, &len, &pref);
 	val = lpm_lookup(lpm, &addr, len);
 	assert(val == (void *)0x105);
 
-	lpm_strtobin("ffff:ffff:ffff:ffff::", &addr, &len, &pref);
+	lpm_strtobin("aaaa:bbbb:cccc:dddd:abcd::abcd", &addr, &len, &pref);
 	val = lpm_lookup(lpm, &addr, len);
 	assert(val == (void *)0x106);
 
 	lpm_strtobin("ffff:ffff:ffff:ffff::abcd", &addr, &len, &pref);
 	val = lpm_lookup(lpm, &addr, len);
-	assert(val == (void *)0x106);
+	assert(val == (void *)0x107);
+
+	lpm_strtobin("ffff:ffff:ffff:ffff::/64", &addr, &len, &pref);
+	ret = lpm_remove(lpm, &addr, len, pref);
+	assert(ret == 0);
+
+	lpm_strtobin("ffff:ffff:ffff:fffe::abcd", &addr, &len, &pref);
+	val = lpm_lookup(lpm, &addr, len);
+	assert(val == (void *)0x100);
 
 	lpm_destroy(lpm);
 }
