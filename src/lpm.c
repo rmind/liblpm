@@ -66,7 +66,7 @@ lpm_create(void)
 }
 
 void
-lpm_flush(lpm_t *lpm, lpm_dtor_t dtor, void *arg)
+lpm_clear(lpm_t *lpm, lpm_dtor_t dtor, void *arg)
 {
 	for (unsigned n = 0; n <= LPM_MAX_PREFIX; n++) {
 		lpm_hmap_t *hmap = &lpm->prefix[n];
@@ -101,7 +101,7 @@ lpm_flush(lpm_t *lpm, lpm_dtor_t dtor, void *arg)
 void
 lpm_destroy(lpm_t *lpm)
 {
-	lpm_flush(lpm, NULL, NULL);
+	lpm_clear(lpm, NULL, NULL);
 	free(lpm);
 }
 
@@ -157,15 +157,24 @@ hashmap_insert(lpm_hmap_t *hmap, const void *key, size_t len)
 {
 	const unsigned target = hmap->nitems + LPM_HASH_STEP;
 	const size_t entlen = offsetof(lpm_ent_t, key[len]);
+	uint32_t hash, i;
 	lpm_ent_t *entry;
 
 	if (hmap->hashsize < target && !hashmap_rehash(hmap, target)) {
 		return NULL;
 	}
-	if ((entry = malloc(entlen)) != NULL) {
-		const uint32_t hash = fnv1a_hash(key, len);
-		const unsigned i = hash & (hmap->hashsize - 1);
 
+	hash = fnv1a_hash(key, len);
+	i = hash & (hmap->hashsize - 1);
+	entry = hmap->bucket[i];
+	while (entry) {
+		if (entry->len == len && memcmp(entry->key, key, len) == 0) {
+			return entry;
+		}
+		entry = entry->next;
+	}
+
+	if ((entry = malloc(entlen)) != NULL) {
 		memcpy(entry->key, key, len);
 		entry->next = hmap->bucket[i];
 		entry->len = len;

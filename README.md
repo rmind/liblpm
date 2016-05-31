@@ -1,7 +1,5 @@
 # Longest Prefix Match (LPM) library
 
-!!! WORK IN PROGRESS !!!
-
 Longest Prefix Match (LPM) library supporting IPv4 and IPv6.
 The implementation is written in C99 and is distributed under the
 2-clause BSD license.  Additionally, bindings are available for *Lua*.
@@ -14,7 +12,7 @@ The implementation is written in C99 and is distributed under the
 * `void lpm_destroy(lpm_t *lpm)`
   * Destroy the LPM object and any entries in it.
 
-* `void lpm_flush(lpm_t *lpm, lpm_dtor_t *dtor, void *arg)`
+* `void lpm_clear(lpm_t *lpm, lpm_dtor_t *dtor, void *arg)`
   * Remove all entries in the LPM object.  It calls the passed destructor
   function, if it is not `NULL`, as it traverses the entries.  The destructor
   function prototype:

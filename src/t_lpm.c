@@ -23,6 +23,26 @@ ipv4_basic_test(void)
 	assert(lpm != NULL);
 
 	/*
+	 * Simple /32 cases.
+	 */
+
+	lpm_strtobin("10.0.0.1", &addr, &len, &pref);
+	ret = lpm_insert(lpm, &addr, len, pref, (void *)0xa);
+	assert(ret == 0);
+
+	lpm_strtobin("10.0.0.1", &addr, &len, &pref);
+	ret = lpm_insert(lpm, &addr, len, pref, (void *)0xb);
+	assert(ret == 0);
+
+	lpm_strtobin("10.0.0.1", &addr, &len, &pref);
+	val = lpm_lookup(lpm, &addr, len);
+	assert(val == (void *)0xb);
+
+	lpm_strtobin("10.0.0.2", &addr, &len, &pref);
+	val = lpm_lookup(lpm, &addr, len);
+	assert(val == NULL);
+
+	/*
 	 * Single /24 network.
 	 */
 

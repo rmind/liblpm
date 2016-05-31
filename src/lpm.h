@@ -15,7 +15,7 @@ typedef void (*lpm_dtor_t)(void *, const void *, size_t, void *);
 
 lpm_t *		lpm_create(void);
 void		lpm_destroy(lpm_t *);
-void		lpm_flush(lpm_t *, lpm_dtor_t, void *);
+void		lpm_clear(lpm_t *, lpm_dtor_t, void *);
 
 int		lpm_insert(lpm_t *, const void *, size_t, unsigned, void *);
 int		lpm_remove(lpm_t *, const void *, size_t, unsigned);

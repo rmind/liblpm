@@ -20,7 +20,7 @@ static int	lua_lpm_tobin(lua_State *);
 static int	lua_lpm_insert(lua_State *);
 static int	lua_lpm_remove(lua_State *);
 static int	lua_lpm_lookup(lua_State *);
-static int	lua_lpm_flush(lua_State *);
+static int	lua_lpm_clear(lua_State *);
 static int	lua_lpm_gc(lua_State *);
 
 static const struct luaL_reg lpm_lib_methods[] = {
@@ -33,7 +33,7 @@ static const struct luaL_reg lpm_methods[] = {
 	{ "insert",	lua_lpm_insert	},
 	{ "remove",	lua_lpm_remove	},
 	{ "lookup",	lua_lpm_lookup	},
-	{ "flush",	lua_lpm_flush	},
+	{ "clear",	lua_lpm_clear	},
 	{ "__gc",	lua_lpm_gc	},
 	{ NULL,		NULL		}
 };
@@ -128,7 +128,7 @@ static int
 lua_lpm_gc(lua_State *L)
 {
 	lpm_lua_t *lctx = lua_lpm_getctx(L);
-	lua_lpm_flush(L);
+	lua_lpm_clear(L);
 	lpm_destroy(lctx->lpm);
 	return 0;
 }
@@ -228,9 +228,9 @@ lua_lpm_unref(void *arg, const void *key, size_t len, void *val)
 }
 
 static int
-lua_lpm_flush(lua_State *L)
+lua_lpm_clear(lua_State *L)
 {
 	lpm_lua_t *lctx = lua_lpm_getctx(L);
-	lpm_flush(lctx->lpm, lua_lpm_unref, L);
+	lpm_clear(lctx->lpm, lua_lpm_unref, L);
 	return 0;
 }
