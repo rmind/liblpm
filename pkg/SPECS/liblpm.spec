@@ -58,3 +58,5 @@ Lua bindings for the LPM library.
 %{lualibdir}/*
 
 %changelog
+* Wed Jun 1 2016 Mindaugas Rasiukevicius <rmind@noxt.eu> 0.2.0-1
+- Initial release of the liblpm library.
