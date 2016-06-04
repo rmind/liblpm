@@ -12,8 +12,8 @@ import java.io.*;
 public class LPM<T> {
 	static {
 		File temp = null;
+		final String name = "org_netbsd_liblpm_LPM.so";
 		try {
-			final String name = "org_netbsd_liblpm_LPM.so";
 			InputStream in = LPM.class.getResourceAsStream("/" + name);
 			byte[] buffer = new byte[1024];
 			int read = -1;
@@ -29,9 +29,10 @@ public class LPM<T> {
 			System.load(temp.getAbsolutePath());
 		} catch (IOException e) {
 			throw new RuntimeException(e);
-		}
-		if (temp != null) {
-			temp.delete();
+		} finally {
+			if (temp != null) {
+				temp.delete();
+			}
 		}
 	}
 

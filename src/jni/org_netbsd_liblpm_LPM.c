@@ -10,9 +10,7 @@
 #include "org_netbsd_liblpm_LPM.h"
 #include "lpm.h"
 
-void dtor(void *, const void *, size_t, void *);
-
-void dtor(void *arg, const void *key, size_t len, void *val)
+static void dtor(void *arg, const void *key, size_t len, void *val)
 {
 	JNIEnv *env = (JNIEnv*)arg;
 	(*env)->DeleteWeakGlobalRef(env, val);
@@ -63,10 +61,10 @@ JNIEXPORT jint JNICALL Java_org_netbsd_liblpm_LPM_insert
 		return ret;
 
 	}
+	(*env)->ReleaseStringUTFChars(env, cidr, cidr_s);
 
 	val_ref = (*env)->NewWeakGlobalRef(env, value);
 	if (val_ref == NULL) {
-		(*env)->ReleaseStringUTFChars(env, cidr, cidr_s);
 		return -1;
 	}
 	ret = lpm_insert(lpm, addr, len, pref, (void *)val_ref);
@@ -74,8 +72,6 @@ JNIEXPORT jint JNICALL Java_org_netbsd_liblpm_LPM_insert
 		(*env)->DeleteWeakGlobalRef(env, val_ref);
 		return ret;
 	}
-
-	(*env)->ReleaseStringUTFChars(env, cidr, cidr_s);
 
 	return ret;
 }
@@ -102,9 +98,9 @@ JNIEXPORT jobject JNICALL Java_org_netbsd_liblpm_LPM_lookup
 		(*env)->ReleaseStringUTFChars(env, addr, addr_s);
 		return NULL;
 	}
-	ret = lpm_lookup(lpm, addr_buf, len);
-
 	(*env)->ReleaseStringUTFChars(env, addr, addr_s);
+
+	ret = lpm_lookup(lpm, addr_buf, len);
 
 	return ret;
 }
@@ -133,16 +129,15 @@ JNIEXPORT jint JNICALL Java_org_netbsd_liblpm_LPM_remove
 		(*env)->ReleaseStringUTFChars(env, addr, addr_s);
 		return ret;
 	}
+	(*env)->ReleaseStringUTFChars(env, addr, addr_s);
 
 	val = lpm_lookup(lpm, addr_buf, len);
 	if (val == NULL) {
-		(*env)->ReleaseStringUTFChars(env, addr, addr_s);
 		return -1;
 	}
 
 	ret = lpm_remove(lpm, addr_buf, len, pref);
 
-	(*env)->ReleaseStringUTFChars(env, addr, addr_s);
 	(*env)->DeleteWeakGlobalRef(env, val);
 
 	return ret;

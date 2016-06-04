@@ -5,7 +5,7 @@ package org.netbsd.liblpm;
 
 public class LPMTest {
 	public static void main(String[] args) {
-		// Run a few iteration to trigger some GC activity
+		// Run a few iterations to trigger some GC activity
 		for (int n = 0; n < 10; n++) {
 			LPM<String> lpm = new LPM<String>();
 			assertEqual(lpm.insert("10.0.0.0/8", "foo"), true);
