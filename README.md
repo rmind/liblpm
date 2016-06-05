@@ -2,7 +2,8 @@
 
 Longest Prefix Match (LPM) library supporting IPv4 and IPv6.
 The implementation is written in C99 and is distributed under the
-2-clause BSD license.  Additionally, bindings are available for *Lua*.
+2-clause BSD license.  Additionally, bindings are available for
+*Lua* and *Java*.
 
 ## API
 
