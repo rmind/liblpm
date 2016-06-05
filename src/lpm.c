@@ -232,7 +232,13 @@ static inline void
 compute_prefix(const unsigned nwords, const uint32_t *addr,
     unsigned preflen, uint32_t *prefix)
 {
-	// XXX unaligned 32-bit fetch
+	uint32_t addr2[4];
+
+	if ((uintptr_t)addr & 3) {
+		/* Unaligned address: just copy for now. */
+		memcpy(addr2, addr, nwords * 4);
+		addr = addr2;
+	}
 	for (unsigned i = 0; i < nwords; i++) {
 		if (preflen == 0) {
 			prefix[i] = 0;
