@@ -55,17 +55,20 @@ Java_org_netbsd_liblpm_LPM_insert__JLjava_lang_String_2Ljava_lang_Object_2
 		return -1;
 	}
 	ret = lpm_strtobin(cidr_s, addr, &len, &pref);
-	if (ret) {
-		(*env)->ReleaseStringUTFChars(env, cidr, cidr_s);
+	(*env)->ReleaseStringUTFChars(env, cidr, cidr_s);
+	if (ret != 0) {
 		return ret;
 	}
-	(*env)->ReleaseStringUTFChars(env, cidr, cidr_s);
 
 	val_ref = (*env)->NewWeakGlobalRef(env, value);
 	if (val_ref == NULL) {
 		return -1;
 	}
-	return lpm_insert(lpm, addr, len, pref, (void *)val_ref);
+	ret = lpm_insert(lpm, addr, len, pref, (void *)val_ref);
+	if (ret != 0) {
+		(*env)->DeleteWeakGlobalRef(env, val_ref);
+	}
+	return ret;
 }
 
 JNIEXPORT jint JNICALL
@@ -164,23 +167,18 @@ Java_org_netbsd_liblpm_LPM_remove__JLjava_lang_String_2(JNIEnv *env,
 		/* XXX would be better to throw an exception in this case */
 		return -1;
 	}
-
 	ret = lpm_strtobin(addr_s, addr_buf, &len, &pref);
+	(*env)->ReleaseStringUTFChars(env, addr, addr_s);
 	if (ret != 0) {
-		(*env)->ReleaseStringUTFChars(env, addr, addr_s);
 		return ret;
 	}
-	(*env)->ReleaseStringUTFChars(env, addr, addr_s);
 
 	val = lpm_lookup(lpm, addr_buf, len);
 	if (val == NULL) {
 		return -1;
 	}
-
 	ret = lpm_remove(lpm, addr_buf, len, pref);
-
 	(*env)->DeleteWeakGlobalRef(env, val);
-
 	return ret;
 }
 
