@@ -5,6 +5,8 @@ The implementation is written in C99 and is distributed under the
 2-clause BSD license.  Additionally, bindings are available for
 *Lua* and *Java*.
 
+[![Build Status](https://travis-ci.org/rmind/liblpm.svg?branch=master)](https://travis-ci.org/rmind/liblpm)
+
 ## API
 
 * `lpm_t *lpm_create(void)`
