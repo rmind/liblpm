@@ -16,6 +16,8 @@ else
 CFLAGS+=	-DNDEBUG
 endif
 
+JAVA_HOME?=	/usr/lib/jvm/java/
+
 CFLAGS+=	-I.. -I$(JAVA_HOME)/include
 # Sadly, jni_md.h location is OS dependent
 CFLAGS+=	-I$(shell dirname $(shell find $(JAVA_HOME) -name jni_md.h))
@@ -36,7 +38,7 @@ JAVAC=		$(JAVA_HOME)/bin/javac
 $(LIB).so: $(OBJS)
 	$(CC) $(LDFLAGS) -fPIC -shared -o $@ $(notdir $^)
 
-org_netbsd_liblpm_LPM.o: java_home org_netbsd_liblpm_LPM.h org_netbsd_liblpm_LPM.c
+org_netbsd_liblpm_LPM.o: org_netbsd_liblpm_LPM.h org_netbsd_liblpm_LPM.c
 
 org_netbsd_liblpm_LPM.h: org/netbsd/liblpm/LPM.class
 	$(JAVAH) -jni org.netbsd.liblpm.LPM
@@ -47,15 +49,10 @@ org_netbsd_liblpm_LPM.h: org/netbsd/liblpm/LPM.class
 liblpm.jar: org/netbsd/liblpm/LPM.class $(LIB).so
 	$(JAR) cf $(JAR_LIB) org/netbsd/liblpm/LPM.class $(LIB).so
 
-.PHONY: test java_home clean
+.PHONY: test clean
 
 test: liblpm.jar org/netbsd/liblpm/LPMTest.class
 	$(JAVA) -classpath .:liblpm.jar org.netbsd.liblpm.LPMTest
-
-java_home:
-ifndef JAVA_HOME
-	$(error JAVA_HOME is undefined)
-endif
 
 clean:
 	@ rm -rf *.so *.o \
