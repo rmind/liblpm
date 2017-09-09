@@ -190,7 +190,12 @@ hashmap_lookup(lpm_hmap_t *hmap, const void *key, size_t len)
 {
 	const uint32_t hash = fnv1a_hash(key, len);
 	const unsigned i = hash & (hmap->hashsize - 1);
-	lpm_ent_t *entry = hmap->bucket[i];
+	lpm_ent_t *entry;
+
+	if (hmap->hashsize == 0) {
+		return NULL;
+	}
+	entry = hmap->bucket[i];
 
 	while (entry) {
 		if (entry->len == len && memcmp(entry->key, key, len) == 0) {
@@ -206,7 +211,12 @@ hashmap_remove(lpm_hmap_t *hmap, const void *key, size_t len)
 {
 	const uint32_t hash = fnv1a_hash(key, len);
 	const unsigned i = hash & (hmap->hashsize - 1);
-	lpm_ent_t *prev = NULL, *entry = hmap->bucket[i];
+	lpm_ent_t *prev = NULL, *entry;
+
+	if (hmap->hashsize == 0) {
+		return -1;
+	}
+	entry = hmap->bucket[i];
 
 	while (entry) {
 		if (entry->len == len && memcmp(entry->key, key, len) == 0) {
