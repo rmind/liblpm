@@ -243,12 +243,42 @@ ipv6_basic_test(void)
 	lpm_destroy(lpm);
 }
 
+static void
+removal_test(void)
+{
+	lpm_t *lpm;
+	uint32_t addr[4];
+	size_t len;
+	unsigned pref;
+	void *val;
+	int ret;
+
+	lpm = lpm_create();
+	assert(lpm != NULL);
+
+	lpm_strtobin("fd00::1/96", addr, &len, &pref);
+	ret = lpm_remove(lpm, addr, len, pref);
+	assert(ret == -1);
+
+	lpm_strtobin("ffff:ffff:ffff:ffff::/64", addr, &len, &pref);
+	ret = lpm_insert(lpm, addr, len, pref, NULL);
+	assert(ret == 0);
+
+	ret = lpm_remove(lpm, addr, len, pref);
+	assert(ret == 0);
+	ret = lpm_remove(lpm, addr, len, pref);
+	assert(ret == -1);
+
+	lpm_destroy(lpm);
+}
+
 int
 main(void)
 {
 	ipv4_basic_test();
 	ipv4_basic_random();
 	ipv6_basic_test();
+	removal_test();
 	puts("ok");
 	return 0;
 }
