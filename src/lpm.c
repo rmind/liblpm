@@ -343,6 +343,29 @@ lpm_lookup(lpm_t *lpm, const void *addr, size_t len)
 }
 
 /*
+ * lpm_retrieve: return the value associated with a prefix
+ *
+ * => Returns the associated value on success or NULL on failure.
+ */
+void *
+lpm_retrieve(lpm_t *lpm, const void *addr, size_t len, unsigned preflen)
+{
+	const unsigned nwords = LPM_TO_WORDS(len);
+	uint32_t prefix[nwords];
+	lpm_ent_t *entry;
+
+	if (preflen == 0) {
+		return lpm->defval;
+	}
+	compute_prefix(nwords, addr, preflen, prefix);
+	entry = hashmap_lookup(&lpm->prefix[preflen], prefix, len);
+	if (entry) {
+		return entry->val;
+	}
+	return NULL;
+}
+
+/*
  * lpm_strtobin: convert CIDR string to the binary IP address and mask.
  *
  * => The address will be in the network byte order.
