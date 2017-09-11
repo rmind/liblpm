@@ -95,6 +95,9 @@ lpm_clear(lpm_t *lpm, lpm_dtor_t dtor, void *arg)
 		hmap->nitems = 0;
 	}
 	memset(lpm->bitmask, 0, sizeof(lpm->bitmask));
+	if (dtor) {
+		dtor(arg, NULL, 0, lpm->defval);
+	}
 	lpm->defval = NULL;
 }
 
