@@ -54,6 +54,8 @@ struct lpm {
 	lpm_hmap_t	prefix[LPM_MAX_PREFIX + 1];
 };
 
+static const uint32_t zero_address[LPM_MAX_WORDS];
+
 lpm_t *
 lpm_create(void)
 {
@@ -96,7 +98,7 @@ lpm_clear(lpm_t *lpm, lpm_dtor_t dtor, void *arg)
 	}
 	memset(lpm->bitmask, 0, sizeof(lpm->bitmask));
 	if (dtor) {
-		dtor(arg, NULL, 0, lpm->defval);
+		dtor(arg, zero_address, 0, lpm->defval);
 	}
 	lpm->defval = NULL;
 }
