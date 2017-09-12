@@ -27,23 +27,41 @@ assert(ret == nil)
 
 
 -- test overwrite/remove
+local tracer = require("tracer")
+local gcl = {}
 acl = lpm.new()
+collectgarbage()    -- cleaup old lpm
+
+
 addr, preflen = lpm.tobin("1.2.3.4/5")
-ok = acl:insert(addr, preflen, some_info)
+ok = acl:insert(addr, preflen, tracer("i1", gcl))
 assert(ok)
-ok = acl:insert(addr, preflen, some_more_info)
+ok = acl:insert(addr, preflen, tracer("i2", gcl))
 assert(ok)
+collectgarbage()    -- tracer i1 should have been GC'd.
+assert(table.remove(gcl) == "i1")
 
 addr, preflen = lpm.tobin("84.42.21.0/28")
-ok = acl:insert(addr, preflen, some_info)
+ok = acl:insert(addr, preflen, tracer("q1", gcl))
 assert(ok)
 addr, preflen = lpm.tobin("84.42.21.0/24")
-ok = acl:insert(addr, preflen, some_info)
+ok = acl:insert(addr, preflen, tracer("q2", gcl))
 assert(ok)
+collectgarbage()    -- no tracers should have been removed
+assert(#gcl == 0)
 
 ok = acl:remove(addr, preflen)
 assert(ok)
+collectgarbage()    -- tracer q2 should have been GC'd, and NOT q1.
+assert(table.remove(gcl) == "q2" and #gcl == 0)
 ok = acl:remove(addr, preflen)
 assert(not ok)
+collectgarbage()    -- no tracers should have been removed
+assert(#gcl == 0)
 
+acl = nil
+collectgarbage()    -- lpm collected
+collectgarbage()    -- remaining tracers (i1, q1) should have been removed.
+assert(#gcl == 2)
 
+print("ok")
