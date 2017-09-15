@@ -274,13 +274,13 @@ removal_test(void)
 static void
 default_test(void)
 {
-    lpm_t *lpm;
+	lpm_t *lpm;
 	uint32_t addr[16] = {0};
 	void *val;
 	int ret;
 
-    lpm = lpm_create();
-    assert(lpm != NULL);
+	lpm = lpm_create();
+	assert(lpm != NULL);
 
 	/* ::/0 */
 	ret = lpm_insert(lpm, addr, 16, 0, (void *)6);
@@ -295,7 +295,7 @@ default_test(void)
 	val = lpm_lookup(lpm, addr,  4);
 	assert(val == (void *)4);
 
-    lpm_destroy(lpm);
+	lpm_destroy(lpm);
 }
 
 int
@@ -305,7 +305,7 @@ main(void)
 	ipv4_basic_random();
 	ipv6_basic_test();
 	removal_test();
-    default_test();
+	default_test();
 	puts("ok");
 	return 0;
 }

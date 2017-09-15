@@ -30,7 +30,7 @@ assert(ret == nil)
 local tracer = require("tracer")
 local gcl = {}
 acl = lpm.new()
-collectgarbage()    -- cleaup old lpm
+collectgarbage()    -- cleanup old lpm
 
 
 addr, preflen = lpm.tobin("1.2.3.4/5")
