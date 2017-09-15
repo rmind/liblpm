@@ -250,7 +250,6 @@ removal_test(void)
 	uint32_t addr[4];
 	size_t len;
 	unsigned pref;
-	void *val;
 	int ret;
 
 	lpm = lpm_create();
@@ -272,6 +271,33 @@ removal_test(void)
 	lpm_destroy(lpm);
 }
 
+static void
+default_test(void)
+{
+    lpm_t *lpm;
+	uint32_t addr[16] = {0};
+	void *val;
+	int ret;
+
+    lpm = lpm_create();
+    assert(lpm != NULL);
+
+	/* ::/0 */
+	ret = lpm_insert(lpm, addr, 16, 0, (void *)6);
+	assert(ret == 0);
+
+	/* 0.0.0.0/0 */
+	ret = lpm_insert(lpm, addr,  4, 0, (void *)4);
+	assert(ret == 0);
+
+	val = lpm_lookup(lpm, addr, 16);
+	assert(val == (void *)6);
+	val = lpm_lookup(lpm, addr,  4);
+	assert(val == (void *)4);
+
+    lpm_destroy(lpm);
+}
+
 int
 main(void)
 {
@@ -279,6 +305,7 @@ main(void)
 	ipv4_basic_random();
 	ipv6_basic_test();
 	removal_test();
+    default_test();
 	puts("ok");
 	return 0;
 }
