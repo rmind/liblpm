@@ -60,7 +60,7 @@ Java_org_netbsd_liblpm_LPM_insert__JLjava_lang_String_2Ljava_lang_Object_2
 		return ret;
 	}
 
-	old_val_ref = lpm_retrieve(lpm, addr, len, pref);
+	old_val_ref = lpm_lookup_prefix(lpm, addr, len, pref);
 
 	val_ref = (*env)->NewWeakGlobalRef(env, value);
 	if (val_ref == NULL) {
@@ -94,7 +94,7 @@ Java_org_netbsd_liblpm_LPM_insert__J_3BILjava_lang_Object_2
 		return -1;
 	}
 
-	old_val_ref = lpm_retrieve(lpm, addr, len, pref);
+	old_val_ref = lpm_lookup_prefix(lpm, addr, len, pref);
 
 	val_ref = (*env)->NewWeakGlobalRef(env, value);
 	if (val_ref == NULL) {
@@ -181,7 +181,7 @@ Java_org_netbsd_liblpm_LPM_remove__JLjava_lang_String_2(JNIEnv *env,
 		return ret;
 	}
 
-	val = lpm_retrieve(lpm, addr_buf, len, pref);
+	val = lpm_lookup_prefix(lpm, addr_buf, len, pref);
 	if (val == NULL) {
 		return -1;
 	}
@@ -208,7 +208,7 @@ Java_org_netbsd_liblpm_LPM_remove__J_3BI(JNIEnv *env, jobject obj,
 		return -1;
 	}
 
-	val = lpm_retrieve(lpm, addr, len, pref);
+	val = lpm_lookup_prefix(lpm, addr, len, pref);
 	if (val == NULL) {
 		(*env)->ReleaseByteArrayElements(env, addr_ref, addr, JNI_ABORT);
 		return -1;

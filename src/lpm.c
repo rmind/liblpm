@@ -352,12 +352,12 @@ lpm_lookup(lpm_t *lpm, const void *addr, size_t len)
 }
 
 /*
- * lpm_retrieve: return the value associated with a prefix
+ * lpm_lookup_prefix: return the value associated with a prefix
  *
  * => Returns the associated value on success or NULL on failure.
  */
 void *
-lpm_retrieve(lpm_t *lpm, const void *addr, size_t len, unsigned preflen)
+lpm_lookup_prefix(lpm_t *lpm, const void *addr, size_t len, unsigned preflen)
 {
 	const unsigned nwords = LPM_TO_WORDS(len);
 	uint32_t prefix[nwords];

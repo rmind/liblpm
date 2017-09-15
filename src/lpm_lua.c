@@ -158,7 +158,7 @@ lua_lpm_insert(lua_State *L)
 	} else {
 		ref = LPM_VALID;
 	}
-	oldref = lpm_retrieve(lctx->lpm, addr, len, preflen);
+	oldref = lpm_lookup_prefix(lctx->lpm, addr, len, preflen);
 	if (lpm_insert(lctx->lpm, addr, len, preflen, ref) == 0) {
 		if (oldref && oldref != LPM_VALID) {
 			luaL_unref(L, LUA_REGISTRYINDEX, oldref->refidx);
@@ -186,7 +186,7 @@ lua_lpm_remove(lua_State *L)
 	preflen = lua_tointeger(L, 3);
 	luaL_argcheck(L, preflen <= 128, 3, "invalid `prefix-len'");
 
-	ref = lpm_retrieve(lctx->lpm, addr, len, preflen);
+	ref = lpm_lookup_prefix(lctx->lpm, addr, len, preflen);
 	if (lpm_remove(lctx->lpm, addr, len, preflen) == 0) {
 		if (ref && ref != LPM_VALID) {
 			luaL_unref(L, LUA_REGISTRYINDEX, ref->refidx);
