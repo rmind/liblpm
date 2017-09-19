@@ -224,7 +224,7 @@ lua_lpm_lookup(lua_State *L)
 static void
 lua_lpm_unref(void *arg, const void *key, size_t len, void *val)
 {
-	if (val != LPM_VALID) {
+	if (val && val != LPM_VALID) {
 		lua_State *L = arg;
 		lpm_luaref_t *ref = val;
 		luaL_unref(L, LUA_REGISTRYINDEX, ref->refidx);
