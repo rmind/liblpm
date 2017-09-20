@@ -28,6 +28,7 @@
 #define	LPM_MAX_WORDS		(LPM_MAX_PREFIX >> 5)
 #define	LPM_TO_WORDS(x)		((x) >> 2)
 #define	LPM_HASH_STEP		(8)
+#define	LPM_LEN_IDX(len)	((len) >> 4)
 
 #ifdef DEBUG
 #define	ASSERT	assert
@@ -50,9 +51,11 @@ typedef struct {
 
 struct lpm {
 	uint32_t	bitmask[LPM_MAX_WORDS];
-	void *		defval;
+	void *		defvals[2];
 	lpm_hmap_t	prefix[LPM_MAX_PREFIX + 1];
 };
+
+static const uint32_t zero_address[LPM_MAX_WORDS];
 
 lpm_t *
 lpm_create(void)
@@ -94,8 +97,12 @@ lpm_clear(lpm_t *lpm, lpm_dtor_t dtor, void *arg)
 		hmap->hashsize = 0;
 		hmap->nitems = 0;
 	}
+	if (dtor) {
+		dtor(arg, zero_address, 4, lpm->defvals[0]);
+		dtor(arg, zero_address, 16, lpm->defvals[1]);
+	}
 	memset(lpm->bitmask, 0, sizeof(lpm->bitmask));
-	lpm->defval = NULL;
+	memset(lpm->defvals, 0, sizeof(lpm->defvals));
 }
 
 void
@@ -277,10 +284,11 @@ lpm_insert(lpm_t *lpm, const void *addr,
 	const unsigned nwords = LPM_TO_WORDS(len);
 	uint32_t prefix[nwords];
 	lpm_ent_t *entry;
+	ASSERT(len == 4 || len == 16);
 
 	if (preflen == 0) {
-		/* Default is a special case. */
-		lpm->defval = val;
+		/* 0-length prefix is a special case. */
+		lpm->defvals[LPM_LEN_IDX(len)] = val;
 		return 0;
 	}
 	compute_prefix(nwords, addr, preflen, prefix);
@@ -302,9 +310,10 @@ lpm_remove(lpm_t *lpm, const void *addr, size_t len, unsigned preflen)
 {
 	const unsigned nwords = LPM_TO_WORDS(len);
 	uint32_t prefix[nwords];
+	ASSERT(len == 4 || len == 16);
 
 	if (preflen == 0) {
-		lpm->defval = NULL;
+		lpm->defvals[LPM_LEN_IDX(len)] = NULL;
 		return 0;
 	}
 	compute_prefix(nwords, addr, preflen, prefix);
@@ -339,7 +348,31 @@ lpm_lookup(lpm_t *lpm, const void *addr, size_t len)
 			bitmask &= ~(1U << i);
 		}
 	}
-	return lpm->defval;
+	return lpm->defvals[LPM_LEN_IDX(len)];
+}
+
+/*
+ * lpm_lookup_prefix: return the value associated with a prefix
+ *
+ * => Returns the associated value on success or NULL on failure.
+ */
+void *
+lpm_lookup_prefix(lpm_t *lpm, const void *addr, size_t len, unsigned preflen)
+{
+	const unsigned nwords = LPM_TO_WORDS(len);
+	uint32_t prefix[nwords];
+	lpm_ent_t *entry;
+	ASSERT(len == 4 || len == 16);
+
+	if (preflen == 0) {
+		return lpm->defvals[LPM_LEN_IDX(len)];
+	}
+	compute_prefix(nwords, addr, preflen, prefix);
+	entry = hashmap_lookup(&lpm->prefix[preflen], prefix, len);
+	if (entry) {
+		return entry->val;
+	}
+	return NULL;
 }
 
 /*

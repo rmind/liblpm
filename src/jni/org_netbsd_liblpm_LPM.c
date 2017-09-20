@@ -43,7 +43,7 @@ Java_org_netbsd_liblpm_LPM_insert__JLjava_lang_String_2Ljava_lang_Object_2
     (JNIEnv *env, jobject obj, jlong lpm_ref, jstring cidr, jobject value)
 {
 	lpm_t *lpm = (lpm_t *)lpm_ref;
-	jobject val_ref;
+	jobject val_ref, old_val_ref;
 	const char *cidr_s;
 	uint32_t addr[4];
 	size_t len;
@@ -60,6 +60,8 @@ Java_org_netbsd_liblpm_LPM_insert__JLjava_lang_String_2Ljava_lang_Object_2
 		return ret;
 	}
 
+	old_val_ref = lpm_lookup_prefix(lpm, addr, len, pref);
+
 	val_ref = (*env)->NewWeakGlobalRef(env, value);
 	if (val_ref == NULL) {
 		return -1;
@@ -67,6 +69,8 @@ Java_org_netbsd_liblpm_LPM_insert__JLjava_lang_String_2Ljava_lang_Object_2
 	ret = lpm_insert(lpm, addr, len, pref, (void *)val_ref);
 	if (ret != 0) {
 		(*env)->DeleteWeakGlobalRef(env, val_ref);
+	} else if (old_val_ref != NULL) {
+		(*env)->DeleteWeakGlobalRef(env, old_val_ref);
 	}
 	return ret;
 }
@@ -77,7 +81,7 @@ Java_org_netbsd_liblpm_LPM_insert__J_3BILjava_lang_Object_2
     jint pref, jobject value)
 {
 	lpm_t *lpm = (lpm_t *)lpm_ref;
-	jobject val_ref;
+	jobject val_ref, old_val_ref;
 	jbyte *addr;
 	size_t len;
 	int ret;
@@ -90,6 +94,8 @@ Java_org_netbsd_liblpm_LPM_insert__J_3BILjava_lang_Object_2
 		return -1;
 	}
 
+	old_val_ref = lpm_lookup_prefix(lpm, addr, len, pref);
+
 	val_ref = (*env)->NewWeakGlobalRef(env, value);
 	if (val_ref == NULL) {
 		(*env)->ReleaseByteArrayElements(env, addr_ref, addr, JNI_ABORT);
@@ -98,6 +104,8 @@ Java_org_netbsd_liblpm_LPM_insert__J_3BILjava_lang_Object_2
 	ret = lpm_insert(lpm, addr, len, pref, (void *)val_ref);
 	if (ret != 0) {
 		(*env)->DeleteWeakGlobalRef(env, val_ref);
+	} else if (old_val_ref != NULL) {
+		(*env)->DeleteWeakGlobalRef(env, old_val_ref);
 	}
 	(*env)->ReleaseByteArrayElements(env, addr_ref, addr, JNI_ABORT);
 
@@ -173,7 +181,7 @@ Java_org_netbsd_liblpm_LPM_remove__JLjava_lang_String_2(JNIEnv *env,
 		return ret;
 	}
 
-	val = lpm_lookup(lpm, addr_buf, len);
+	val = lpm_lookup_prefix(lpm, addr_buf, len, pref);
 	if (val == NULL) {
 		return -1;
 	}
@@ -200,7 +208,7 @@ Java_org_netbsd_liblpm_LPM_remove__J_3BI(JNIEnv *env, jobject obj,
 		return -1;
 	}
 
-	val = lpm_lookup(lpm, addr, len);
+	val = lpm_lookup_prefix(lpm, addr, len, pref);
 	if (val == NULL) {
 		(*env)->ReleaseByteArrayElements(env, addr_ref, addr, JNI_ABORT);
 		return -1;

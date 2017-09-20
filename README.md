@@ -31,6 +31,10 @@ The implementation is written in C99 and is distributed under the
   * Remove the network address of a given length and prefix length from
   the LPM object.  Returns 0 on success or -1 on failure.
 
+* `void *lpm_lookup_prefix(lpm_t *lpm, const void *addr, size_t len, unsigned preflen)`
+  * Retrieve the pointer associated with a specific prefix.
+  Returns the said pointer, or `NULL` on failure.
+
 * `void *lpm_lookup(lpm_t *lpm, const void *addr, size_t len)`
   * Lookup the given address performing the longest prefix match.
   Returns the associated pointer value on success or `NULL` on failure.
