@@ -26,12 +26,25 @@ ret = acl:lookup(lpm.tobin("10.2.2.1"))
 assert(ret == nil)
 
 
+local function tracer(ind, tbl)
+    local trc
+    if _VERSION == "Lua 5.1" then
+        -- Lua 5.1 only calls the __gc metamethod on userdata.
+        -- There's an undocumented, deprecated function called 'newproxy', which creates blank userdata.
+        -- It seems its only purpose is to provide GC. This function is absent in later lua versions.
+        trc = newproxy(true)
+        getmetatable(trc).__gc = function () table.insert(tbl, ind) end
+    else
+        trc = {}
+        setmetatable(trc, {__gc = function () table.insert(tbl, ind) end})
+    end
+    return trc
+end
+
 -- test overwrite/remove
-local tracer = require("tracer")
 local gcl = {}
 acl = lpm.new()
 collectgarbage()    -- cleanup old lpm
-
 
 addr, preflen = lpm.tobin("1.2.3.4/5")
 ok = acl:insert(addr, preflen, tracer("i1", gcl))
