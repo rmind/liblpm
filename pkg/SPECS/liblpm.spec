@@ -25,7 +25,7 @@ Longest Prefix Match (LPM) library supporting IPv4 and IPv6.
 make tests
 
 %build
-make %{?_smp_mflags} LIBDIR=%{_libdir}
+make %{?_smp_mflags} lib LIBDIR=%{_libdir}
 make %{?_smp_mflags} lua LIBDIR=%{lualibdir}
 
 %install

@@ -2,9 +2,13 @@
 # This file is in the Public Domain.
 #
 
-CFLAGS=		-std=gnu99 -O2 -g -W -Wextra -Werror -D_BSD_SOURCE
+CFLAGS=		-std=c99 -O2 -g -W -Wextra -Werror
+
 CFLAGS+=	-Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith
-CFLAGS+=	-Wshadow -Wcast-qual -Wwrite-strings
+CFLAGS+=	-Wmissing-declarations -Wredundant-decls -Wnested-externs
+CFLAGS+=	-Wshadow -Wcast-qual -Wcast-align -Wwrite-strings
+CFLAGS+=	-Wold-style-definition
+#CFLAGS+=	-Wsuggest-attribute=noreturn -Wjump-misses-init
 
 ifeq ($(MAKECMDGOALS),tests)
 DEBUG=		1
@@ -35,18 +39,20 @@ install/%.la:	ILIBDIR=	$(DESTDIR)/$(LIBDIR)
 install:	IINCDIR=	$(DESTDIR)/$(INCDIR)/
 #install:	IMANDIR=	$(DESTDIR)/$(MANDIR)/man3/
 
+obj: $(OBJS)
+
 lib: $(LIB).la
 
 lua: $(LIB).so
 
 %.o: %.c
-	$(CC) $(CFLAGS) -fPIC -c $<
+	$(CC) $(CFLAGS) -c $<
 
 $(LIB).so: $(OBJS)
 	$(CC) $(LDFLAGS) -fPIC -shared -o $@ $(notdir $^)
 
 %.lo: %.c
-	libtool --mode=compile --tag CC $(CC) $(CFLAGS) -c $<
+	libtool --mode=compile --tag CC $(CC) $(CFLAGS) -fPIC -c $<
 
 $(LIB).la: $(shell echo $(OBJS) | sed 's/\.o/\.lo/g')
 	libtool --mode=link --tag CC $(CC) $(LDFLAGS) -o $@ $(notdir $^)
@@ -70,6 +76,6 @@ tests: $(OBJS) t_lpm.o
 
 clean:
 	libtool --mode=clean rm
-	@ rm -rf .libs *.so *.o *.lo *.la t_lpm
+	rm -rf .libs *.so *.o *.lo *.la t_lpm
 
-.PHONY: all lib lua install tests clean
+.PHONY: all obj lib lua install tests clean

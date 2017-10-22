@@ -1,3 +1,7 @@
+--
+-- This file is in the Public Domain.
+--
+
 local lpm = require("lpm")
 
 local acl = lpm.new()
@@ -27,18 +31,18 @@ assert(ret == nil)
 
 
 local function tracer(ind, tbl)
-    local trc
-    if _VERSION == "Lua 5.1" then
-        -- Lua 5.1 only calls the __gc metamethod on userdata.
-        -- There's an undocumented, deprecated function called 'newproxy', which creates blank userdata.
-        -- It seems its only purpose is to provide GC. This function is absent in later lua versions.
-        trc = newproxy(true)
-        getmetatable(trc).__gc = function () table.insert(tbl, ind) end
-    else
-        trc = {}
-        setmetatable(trc, {__gc = function () table.insert(tbl, ind) end})
-    end
-    return trc
+  local trc
+  if _VERSION == "Lua 5.1" then
+    -- Lua 5.1 only calls the __gc metamethod on userdata.  There is an
+    -- undocumented function called 'newproxy' to create blank userdata.
+    -- This function is deprecated and absent in later Lua versions.
+    trc = newproxy(true)
+    getmetatable(trc).__gc = function () table.insert(tbl, ind) end
+  else
+    trc = {}
+    setmetatable(trc, {__gc = function () table.insert(tbl, ind) end})
+  end
+  return trc
 end
 
 -- test overwrite/remove

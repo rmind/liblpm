@@ -1,11 +1,13 @@
 # Longest Prefix Match (LPM) library
 
+[![Build Status](https://travis-ci.org/rmind/liblpm.svg?branch=master)](https://travis-ci.org/rmind/liblpm)
+
 Longest Prefix Match (LPM) library supporting IPv4 and IPv6.
 The implementation is written in C99 and is distributed under the
-2-clause BSD license.  Additionally, bindings are available for
-*Lua* and *Java*.
+2-clause BSD license.
 
-[![Build Status](https://travis-ci.org/rmind/liblpm.svg?branch=master)](https://travis-ci.org/rmind/liblpm)
+Additionally, bindings are available for **Lua** and **Java**.
+There is a specification to build an RPM package.
 
 ## API
 

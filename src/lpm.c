@@ -31,9 +31,9 @@
 #define	LPM_LEN_IDX(len)	((len) >> 4)
 
 #ifdef DEBUG
-#define	ASSERT	assert
+#define	ASSERT			assert
 #else
-#define	ASSERT
+#define	ASSERT(x)
 #endif
 
 typedef struct lpm_ent {
