@@ -3,6 +3,8 @@
 #
 
 CFLAGS=		-std=c99 -O2 -g -W -Wextra -Werror
+CFLAGS+=	-D_POSIX_C_SOURCE=200809L
+CFLAGS+=	-D_GNU_SOURCE -D_DEFAULT_SOURCE
 
 CFLAGS+=	-Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith
 CFLAGS+=	-Wmissing-declarations -Wredundant-decls -Wnested-externs
