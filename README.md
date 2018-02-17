@@ -66,3 +66,9 @@ end
 local ret = acl:lookup(lpm.tobin("10.0.0.100"))
 print(ret.val)
 ```
+
+## Packages
+
+Just build the package, install it and link the library using the
+`-llpm` flag.
+* RPM (tested on RHEL/CentOS 7): `cd pkg && make rpm`

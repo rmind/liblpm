@@ -6,8 +6,15 @@
  */
 
 /*
- * TODO: Simple linear scan for now (works just well with a few prefixes).
- * TBD on a better algorithm.
+ * Longest Prefix Match (LPM) library supporting IPv4 and IPv6.
+ *
+ * Algorithm:
+ *
+ * Each prefix gets its own hash map and all added prefixes are saved
+ * in a bitmap.  On a lookup, we perform a linear scan of hash maps,
+ * iterating through the added prefixes only.  Usually, there are only
+ * a few unique prefixes used and such simple algorithm is very efficient.
+ * With many IPv6 prefixes, the linear scan might become a bottleneck.
  */
 
 #include <sys/socket.h>
