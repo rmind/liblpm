@@ -1,8 +1,9 @@
+%define version	%(cat %{_topdir}/version.txt)
 %define luaver 5.1
 %define lualibdir %{_libdir}/lua/%{luaver}
 
 Name:		liblpm
-Version:	0.2.1
+Version:	%{version}
 Release:	1%{?dist}
 Summary:	Longest Prefix Match (LPM) library
 Group:		System Environment/Libraries

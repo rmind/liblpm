@@ -1,0 +1,31 @@
+Source: lpm
+Priority: extra
+Maintainer: https://github.com/rmind
+Build-Depends:
+ debhelper (>= 9),
+ make,
+ libtool
+Standards-Version: 3.9.1
+Homepage: https://github.com/rmind/liblpm
+License: BSD-2-clause
+
+Package: liblpm1
+Section: lib
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Longest Prefix Match (LPM) library
+ Longest Prefix Match (LPM) library supporting IPv4 and IPv6.
+
+Package: liblpm1-dbg
+Section: debug
+Architecture: any
+Depends: ${misc:Depends}, liblpm1 (= ${binary:Version})
+Description: Debug symbols for liblpm1
+ Debug symbols for liblpm1.
+
+Package: liblpm-dev
+Section: libdevel
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, liblpm1 (= ${binary:Version})
+Description: Development files for liblpm1
+ Development files for liblpm1.

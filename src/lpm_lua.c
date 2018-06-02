@@ -79,7 +79,6 @@ luaopen_lpm(lua_State *L)
 static int
 lua_lpm_new(lua_State *L)
 {
-	unsigned type = lua_tointeger(L, 1);
 	lpm_lua_t *lctx;
 	lpm_t *lpm;
 
@@ -111,7 +110,7 @@ lua_lpm_tobin(lua_State *L)
 	if (!cidr || lpm_strtobin(cidr, addr, &len, &preflen) == -1) {
 		return 0;
 	}
-	lua_pushlstring(L, addr, len);
+	lua_pushlstring(L, (const char *)addr, len);
 	lua_pushinteger(L, preflen);
 	return 2;
 }
@@ -142,7 +141,7 @@ lua_lpm_insert(lua_State *L)
 	size_t len;
 	lpm_luaref_t *ref, *oldref;
 
-	addr = lua_tolstring(L, 2, &len);
+	addr = (const uint8_t *)lua_tolstring(L, 2, &len);
 	luaL_argcheck(L, addr && (len == 4 || len == 16), 2,
 	    "`addr' binary string of 4 or 16 bytes expected");
 
@@ -179,7 +178,7 @@ lua_lpm_remove(lua_State *L)
 	size_t len;
 	lpm_luaref_t *ref;
 
-	addr = lua_tolstring(L, 2, &len);
+	addr = (const uint8_t *)lua_tolstring(L, 2, &len);
 	luaL_argcheck(L, addr && (len == 4 || len == 16), 2,
 	    "`addr' binary string of 4 or 16 bytes expected");
 
@@ -206,7 +205,7 @@ lua_lpm_lookup(lua_State *L)
 	size_t len;
 	lpm_luaref_t *ref;
 
-	addr = lua_tolstring(L, 2, &len);
+	addr = (const uint8_t *)lua_tolstring(L, 2, &len);
 	luaL_argcheck(L, addr && (len == 4 || len == 16), 2,
 	    "`addr' binary string of 4 or 16 bytes expected");
 
@@ -230,6 +229,8 @@ lua_lpm_unref(void *arg, const void *key, size_t len, void *val)
 		luaL_unref(L, LUA_REGISTRYINDEX, ref->refidx);
 		free(ref);
 	}
+	(void)key;
+	(void)len;
 }
 
 static int

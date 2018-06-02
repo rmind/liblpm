@@ -2,7 +2,9 @@
 # This file is in the Public Domain.
 #
 
-CFLAGS=		-std=c99 -O2 -g -W -Wextra -Werror
+PROJ=		lpm
+
+CFLAGS+=	-std=c99 -O2 -g -Wall -Wextra -Werror
 CFLAGS+=	-D_POSIX_C_SOURCE=200809L
 CFLAGS+=	-D_GNU_SOURCE -D_DEFAULT_SOURCE
 
@@ -45,7 +47,7 @@ OBJS=		lpm.o
 LIB=		liblpm
 endif
 
-$(LIB).la:	LDFLAGS+=	-rpath $(LIBDIR)
+$(LIB).la:	LDFLAGS+=	-rpath $(LIBDIR) -version-info 1:0:0
 install/%.la:	ILIBDIR=	$(DESTDIR)/$(LIBDIR)
 install:	IINCDIR=	$(DESTDIR)/$(INCDIR)/
 #install:	IMANDIR=	$(DESTDIR)/$(MANDIR)/man3/
@@ -81,12 +83,12 @@ lua_install:
 	mkdir -p $(DESTDIR)/$(LIBDIR)
 	install -c lpm.so $(DESTDIR)/$(LIBDIR)
 
-tests: $(OBJS) t_lpm.o
-	$(CC) $(CFLAGS) $^ -o t_lpm
-	MALLOC_CHECK_=3 ./t_lpm
+tests: $(OBJS) t_$(PROJ).o
+	$(CC) $(CFLAGS) $^ -o t_$(PROJ)
+	MALLOC_CHECK_=3 ./t_$(PROJ)
 
 clean:
 	libtool --mode=clean rm
-	rm -rf .libs *.so *.o *.lo *.la t_lpm
+	rm -rf .libs *.so *.o *.lo *.la t_$(PROJ)
 
 .PHONY: all obj lib lua install tests clean
