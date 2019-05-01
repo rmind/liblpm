@@ -4,7 +4,8 @@ Maintainer: https://github.com/rmind
 Build-Depends:
  debhelper (>= 9),
  make,
- libtool
+ libtool,
+ liblua5.1-0-dev
 Standards-Version: 3.9.1
 Homepage: https://github.com/rmind/liblpm
 License: BSD-2-clause
@@ -15,6 +16,14 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Longest Prefix Match (LPM) library
  Longest Prefix Match (LPM) library supporting IPv4 and IPv6.
+
+Package: liblpm-lua
+Section: lib
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, liblpm1 (= ${binary:Version})
+Provides: ${lua:Provides}
+Description: Lua bindings for Longest Prefix Match (LPM) library
+ Lua bindings for Longest Prefix Match (LPM) library supporting IPv4 and IPv6.
 
 Package: liblpm1-dbg
 Section: debug

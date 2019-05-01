@@ -35,8 +35,10 @@ endif
 
 ifeq ($(MAKECMDGOALS),lua)
 # Lua module
-CFLAGS+=	$(shell pkg-config --cflags lua) -fPIC
-LDFLAGS+=	$(shell pkg-config --cflags --libs lua)
+LUA_CFLAGS?=	$(shell pkg-config --cflags lua)
+LUA_LDFLAGS?=	$(shell pkg-config --cflags --libs lua)
+CFLAGS+=	$(LUA_CFLAGS) -fPIC
+LDFLAGS+=	$(LUA_LDFLAGS)
 LDFLAGS+=	-L.libs -llpm
 OBJS=		lpm_lua.o
 LIB=		lpm

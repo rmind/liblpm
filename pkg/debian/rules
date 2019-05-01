@@ -7,14 +7,26 @@ DEB_HOST_MULTIARCH?=$(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 LIBDIR:=/usr/lib/$(DEB_HOST_MULTIARCH)
 INCDIR:=/usr/include
 
+LUA_VER?=5.1
+LUA_CFLAGS:=$(shell pkg-config --cflags lua$(LUA_VER))
+LUA_LDFLAGS:=$(shell pkg-config --cflags --libs lua$(LUA_VER))
+
 %:
 	dh $@ --sourcedirectory=SOURCES --parallel
+
+override_dh_auto_build:
+	dh_auto_build -- LIBDIR=$(LIBDIR)
+	dh_auto_build -- lua LIBDIR=$(LIBDIR) \
+	    LUA_CFLAGS=$(LUA_CFLAGS) LUA_LDFLAGS=$(LUA_LDFLAGS)
 
 override_dh_auto_test:
 	dh_auto_test tests
 
 override_dh_auto_install:
 	dh_auto_install -- LIBDIR=$(LIBDIR) INCDIR=$(INCDIR)
+	dh_auto_install -- lua_install \
+	    LIBDIR=$(LIBDIR)/lua/$(LUA_VER) INCDIR=$(INCDIR) \
+	    LUA_LDFLAGS=$(LUA_LDFLAGS)
 
 override_dh_strip:
 	dh_strip -p liblpm1 --dbg-package=liblpm1-dbg
