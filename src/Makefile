@@ -82,8 +82,8 @@ install: $(addprefix install/,$(LIB).la)
 	#mkdir -p $(IMANDIR) && install -c $(MANS) $(IMANDIR)
 
 lua_install:
-	mkdir -p $(DESTDIR)/$(LIBDIR)
-	install -c lpm.so $(DESTDIR)/$(LIBDIR)
+	mkdir -p $(DESTDIR)/$(LUA_LIBDIR)
+	install -c lpm.so $(DESTDIR)/$(LUA_LIBDIR)
 
 tests: $(OBJS) t_$(PROJ).o
 	$(CC) $(CFLAGS) $^ -o t_$(PROJ)

@@ -37,7 +37,7 @@ make install \
     MANDIR=%{_mandir}
 make lua_install \
     DESTDIR=%{buildroot} \
-    LIBDIR=%{lualibdir}
+    LUA_LIBDIR=%{lualibdir}
 
 %files
 %{_libdir}/*
