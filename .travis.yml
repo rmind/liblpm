@@ -1,7 +1,19 @@
+sudo: required
+dist: trusty
+
 language: c
 
 compiler:
   - gcc
   - clang
 
-script: cd src && make tests
+install:
+  # build essentials
+  - sudo apt-get install -y build-essential fakeroot debhelper
+  - sudo apt-get install -y make libtool liblua5.1-0-dev
+
+script:
+  # Build the package.
+  - (cd pkg && make deb && sudo dpkg -i ../liblpm*.deb)
+  # Compile and run the tests.
+  - cd src && make tests
