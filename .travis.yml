@@ -14,6 +14,6 @@ install:
 
 script:
   # Build the package.
-  - (cd pkg && make deb && sudo dpkg -i ../liblpm*.deb)
+  - (cd pkg && make deb)
   # Compile and run the tests.
   - cd src && make tests
