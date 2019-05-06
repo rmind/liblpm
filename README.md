@@ -7,7 +7,7 @@ The implementation is written in C99 and is distributed under the
 2-clause BSD license.
 
 Additionally, bindings are available for **Lua** and **Java**.
-There is a specification to build an RPM package.
+Specifications to build RPM and DEB packages are also provided.
 
 ## API
 
@@ -49,7 +49,9 @@ There is a specification to build an RPM package.
   provide at least 4 or 16 bytes (depending on the address family).  Returns
   zero on success and -1 on failure.
 
-## Lua example
+## Examples
+
+### Lua
 
 ```lua
 local lpm = require("lpm")
@@ -66,6 +68,12 @@ end
 local ret = acl:lookup(lpm.tobin("10.0.0.100"))
 print(ret.val)
 ```
+
+### Java
+
+See [README](src/jni) how to build the JAR and the
+[test case](src/jni/org/netbsd/liblpm/LPMTest.java) as example
+how to use the Java API
 
 ## Packages
 
