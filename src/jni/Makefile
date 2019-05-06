@@ -2,9 +2,11 @@
 # This file is in the Public Domain.
 #
 
-CFLAGS=		-std=gnu99 -O2 -g -W -Wextra -Werror -D_BSD_SOURCE
-CFLAGS+=	-Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith
-CFLAGS+=	-Wshadow -Wcast-qual -Wwrite-strings
+CFLAGS+=	-std=c99 -O2 -g -Wall -Wextra -Werror
+CFLAGS+=	-D_POSIX_C_SOURCE=200809L
+CFLAGS+=	-D_GNU_SOURCE -D_DEFAULT_SOURCE
+
+CFLAGS+=	-Wno-unused-parameter
 
 ifeq ($(MAKECMDGOALS),tests)
 DEBUG=		1
