@@ -15,7 +15,7 @@ static void
 lpm_jni_dtor(void *arg, const void *key, size_t len, void *val)
 {
 	JNIEnv *env = (JNIEnv*)arg;
-	(*env)->DeleteWeakGlobalRef(env, val);
+	(*env)->DeleteGlobalRef(env, val);
 }
 
 JNIEXPORT jlong JNICALL
@@ -62,15 +62,15 @@ Java_org_netbsd_liblpm_LPM_insert__JLjava_lang_String_2Ljava_lang_Object_2
 
 	old_val_ref = lpm_lookup_prefix(lpm, addr, len, pref);
 
-	val_ref = (*env)->NewWeakGlobalRef(env, value);
+	val_ref = (*env)->NewGlobalRef(env, value);
 	if (val_ref == NULL) {
 		return -1;
 	}
 	ret = lpm_insert(lpm, addr, len, pref, (void *)val_ref);
 	if (ret != 0) {
-		(*env)->DeleteWeakGlobalRef(env, val_ref);
+		(*env)->DeleteGlobalRef(env, val_ref);
 	} else if (old_val_ref != NULL) {
-		(*env)->DeleteWeakGlobalRef(env, old_val_ref);
+		(*env)->DeleteGlobalRef(env, old_val_ref);
 	}
 	return ret;
 }
@@ -96,16 +96,16 @@ Java_org_netbsd_liblpm_LPM_insert__J_3BILjava_lang_Object_2
 
 	old_val_ref = lpm_lookup_prefix(lpm, addr, len, pref);
 
-	val_ref = (*env)->NewWeakGlobalRef(env, value);
+	val_ref = (*env)->NewGlobalRef(env, value);
 	if (val_ref == NULL) {
 		(*env)->ReleaseByteArrayElements(env, addr_ref, addr, JNI_ABORT);
 		return -1;
 	}
 	ret = lpm_insert(lpm, addr, len, pref, (void *)val_ref);
 	if (ret != 0) {
-		(*env)->DeleteWeakGlobalRef(env, val_ref);
+		(*env)->DeleteGlobalRef(env, val_ref);
 	} else if (old_val_ref != NULL) {
-		(*env)->DeleteWeakGlobalRef(env, old_val_ref);
+		(*env)->DeleteGlobalRef(env, old_val_ref);
 	}
 	(*env)->ReleaseByteArrayElements(env, addr_ref, addr, JNI_ABORT);
 
@@ -186,7 +186,7 @@ Java_org_netbsd_liblpm_LPM_remove__JLjava_lang_String_2(JNIEnv *env,
 		return -1;
 	}
 	ret = lpm_remove(lpm, addr_buf, len, pref);
-	(*env)->DeleteWeakGlobalRef(env, val);
+	(*env)->DeleteGlobalRef(env, val);
 	return ret;
 }
 
@@ -216,7 +216,7 @@ Java_org_netbsd_liblpm_LPM_remove__J_3BI(JNIEnv *env, jobject obj,
 
 	ret = lpm_remove(lpm, addr, len, pref);
 
-	(*env)->DeleteWeakGlobalRef(env, val);
+	(*env)->DeleteGlobalRef(env, val);
 	(*env)->ReleaseByteArrayElements(env, addr_ref, addr, JNI_ABORT);
 
 	return ret;
