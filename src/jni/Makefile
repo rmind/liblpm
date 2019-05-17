@@ -31,19 +31,18 @@ JAR_LIB=	liblpm.jar
 
 JAR=		$(JAVA_HOME)/bin/jar
 JAVA=		$(JAVA_HOME)/bin/java
-JAVAH=		$(JAVA_HOME)/bin/javah
 JAVAC=		$(JAVA_HOME)/bin/javac
 
 %.o: %.c
 	$(CC) $(CFLAGS) -fPIC -c $<
 
 $(LIB).so: $(OBJS)
-	$(CC) $(LDFLAGS) -fPIC -shared -o $@ $(notdir $^)
+	$(CC) $(LDFLAGS) -fPIC -shared -o $@ $^
 
 org_netbsd_liblpm_LPM.o: org_netbsd_liblpm_LPM.h org_netbsd_liblpm_LPM.c
 
-org_netbsd_liblpm_LPM.h: org/netbsd/liblpm/LPM.class
-	$(JAVAH) -jni org.netbsd.liblpm.LPM
+org_netbsd_liblpm_LPM.h org/netbsd/liblpm/LPM.class: org/netbsd/liblpm/LPM.java
+	$(JAVAC) -h . $<
 
 %.class: %.java
 	$(JAVAC) $<
