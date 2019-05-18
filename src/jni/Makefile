@@ -37,7 +37,7 @@ JAVAC=		$(JAVA_HOME)/bin/javac
 	$(CC) $(CFLAGS) -fPIC -c $<
 
 $(LIB).so: $(OBJS)
-	$(CC) $(LDFLAGS) -fPIC -shared -o $@ $^
+	$(CC) $(LDFLAGS) -fPIC -shared -o $@ $(notdir $^)
 
 org_netbsd_liblpm_LPM.o: org_netbsd_liblpm_LPM.h org_netbsd_liblpm_LPM.c
 
