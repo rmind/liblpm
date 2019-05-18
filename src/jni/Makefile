@@ -22,7 +22,7 @@ JAVA_HOME?=	/usr/lib/jvm/java/
 
 CFLAGS+=	-I.. -I$(JAVA_HOME)/include
 # Sadly, jni_md.h location is OS dependent
-CFLAGS+=	-I$(shell dirname $(shell find $(JAVA_HOME) -name jni_md.h))
+CFLAGS+=	-I$(shell dirname $(shell find -L $(JAVA_HOME) -name jni_md.h))
 
 OBJS=		org_netbsd_liblpm_LPM.o ../lpm.o
 LIB=		org_netbsd_liblpm_LPM
