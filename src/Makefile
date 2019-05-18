@@ -29,25 +29,16 @@ endif
 
 ifeq ($(DEBUG),1)
 CFLAGS+=	-Og -DDEBUG -fno-omit-frame-pointer
+CFLAGS+=	-fsanitize=address
+LDFLAGS+=	-fsanitize=address
 else
 CFLAGS+=	-DNDEBUG
 endif
 
-ifeq ($(MAKECMDGOALS),lua)
-# Lua module
-LUA_CFLAGS?=	$(shell pkg-config --cflags lua)
-LUA_LDFLAGS?=	$(shell pkg-config --cflags --libs lua)
-CFLAGS+=	$(LUA_CFLAGS) -fPIC
-LDFLAGS+=	$(LUA_LDFLAGS)
-LDFLAGS+=	-L.libs -llpm
-OBJS=		lpm_lua.o
-LIB=		lpm
-else
 # C library
 INCS=		lpm.h
 OBJS=		lpm.o
 LIB=		liblpm
-endif
 
 $(LIB).la:	LDFLAGS+=	-rpath $(LIBDIR) -version-info 1:0:0
 install/%.la:	ILIBDIR=	$(DESTDIR)/$(LIBDIR)
@@ -58,13 +49,8 @@ obj: $(OBJS)
 
 lib: $(LIB).la
 
-lua: $(LIB).so
-
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
-
-$(LIB).so: $(OBJS)
-	$(CC) $(LDFLAGS) -fPIC -shared -o $@ $(notdir $^)
 
 %.lo: %.c
 	libtool --mode=compile --tag CC $(CC) $(CFLAGS) -fPIC -c $<
@@ -81,10 +67,6 @@ install: $(addprefix install/,$(LIB).la)
 	mkdir -p $(IINCDIR) && install -c $(INCS) $(IINCDIR)
 	#mkdir -p $(IMANDIR) && install -c $(MANS) $(IMANDIR)
 
-lua_install:
-	mkdir -p $(DESTDIR)/$(LUA_LIBDIR)
-	install -c lpm.so $(DESTDIR)/$(LUA_LIBDIR)
-
 tests: $(OBJS) t_$(PROJ).o
 	$(CC) $(CFLAGS) $^ -o t_$(PROJ)
 	MALLOC_CHECK_=3 ./t_$(PROJ)
@@ -93,4 +75,4 @@ clean:
 	libtool --mode=clean rm
 	rm -rf .libs *.so *.o *.lo *.la t_$(PROJ)
 
-.PHONY: all obj lib lua install tests clean
+.PHONY: all obj lib install tests clean

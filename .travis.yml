@@ -1,5 +1,5 @@
 sudo: required
-dist: trusty
+dist: xenial
 
 language: c
 
@@ -10,10 +10,13 @@ compiler:
 install:
   # build essentials
   - sudo apt-get install -y build-essential fakeroot debhelper
-  - sudo apt-get install -y make libtool liblua5.1-0-dev
+  - sudo apt-get install -y libtool libtool-bin
+  - sudo apt-get install -y liblua5.1-0-dev lua5.1
 
 script:
   # Build the package.
   - (cd pkg && make deb)
   # Compile and run the tests.
-  - cd src && make tests
+  - (cd src && make clean && DEBUG=1 make tests)
+  # Install the DEB packages and run the Lua tests.
+  #- (sudo dpkg -i *.deb && cd src/lua && lua ./t_lpm.lua)
