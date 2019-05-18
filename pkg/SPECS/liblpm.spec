@@ -27,7 +27,7 @@ make tests
 
 %build
 make %{?_smp_mflags} lib LIBDIR=%{_libdir}
-make %{?_smp_mflags} lua LIBDIR=%{lualibdir}
+make %{?_smp_mflags} -C lua lib LIBDIR=%{lualibdir}
 
 %install
 make install \
@@ -35,12 +35,13 @@ make install \
     LIBDIR=%{_libdir} \
     INCDIR=%{_includedir} \
     MANDIR=%{_mandir}
-make lua_install \
+make -C lua install \
     DESTDIR=%{buildroot} \
     LUA_LIBDIR=%{lualibdir}
 
 %files
-%{_libdir}/*
+%{_libdir}/liblpm.*
+
 %{_includedir}/*
 #%{_mandir}/*
 
