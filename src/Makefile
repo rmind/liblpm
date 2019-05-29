@@ -4,8 +4,11 @@
 
 PROJ=		lpm
 
+UNAME:=		$(shell uname)
 CFLAGS+=	-std=c99 -O2 -g -Wall -Wextra -Werror
+ifneq ($(UNAME), FreeBSD)
 CFLAGS+=	-D_POSIX_C_SOURCE=200809L
+endif
 CFLAGS+=	-D_GNU_SOURCE -D_DEFAULT_SOURCE
 
 #
