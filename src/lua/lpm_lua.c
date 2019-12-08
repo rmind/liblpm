@@ -23,13 +23,13 @@ static int	lua_lpm_lookup(lua_State *);
 static int	lua_lpm_clear(lua_State *);
 static int	lua_lpm_gc(lua_State *);
 
-static const struct luaL_reg lpm_lib_methods[] = {
+static const struct luaL_Reg lpm_lib_methods[] = {
 	{ "new",	lua_lpm_new	},
 	{ "tobin",	lua_lpm_tobin	},
 	{ NULL,		NULL		}
 };
 
-static const struct luaL_reg lpm_methods[] = {
+static const struct luaL_Reg lpm_methods[] = {
 	{ "insert",	lua_lpm_insert	},
 	{ "remove",	lua_lpm_remove	},
 	{ "lookup",	lua_lpm_lookup	},
