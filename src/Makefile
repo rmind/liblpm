@@ -4,9 +4,11 @@
 
 PROJ=		lpm
 
-UNAME:=		$(shell uname)
+SYSNAME:=	$(shell uname -s)
+SYSARCH:=	$(shell uname -m)
+
 CFLAGS+=	-std=c99 -O2 -g -Wall -Wextra -Werror
-ifneq ($(UNAME), FreeBSD)
+ifneq ($(SYSNAME), FreeBSD)
 CFLAGS+=	-D_POSIX_C_SOURCE=200809L
 endif
 CFLAGS+=	-D_GNU_SOURCE -D_DEFAULT_SOURCE
@@ -21,10 +23,8 @@ CFLAGS+=	-Wmissing-declarations -Wredundant-decls -Wnested-externs
 CFLAGS+=	-Wshadow -Wcast-qual -Wcast-align -Wwrite-strings
 CFLAGS+=	-Wold-style-definition
 CFLAGS+=	-Wsuggest-attribute=noreturn -Wjump-misses-init
-
-# New GCC 6/7 flags:
-#CFLAGS+=	-Wduplicated-cond -Wmisleading-indentation -Wnull-dereference
-#CFLAGS+=	-Wduplicated-branches -Wrestrict
+CFLAGS+=	-Wduplicated-cond -Wmisleading-indentation -Wnull-dereference
+CFLAGS+=	-Wduplicated-branches -Wrestrict
 
 ifeq ($(MAKECMDGOALS),tests)
 DEBUG=		1
@@ -32,8 +32,10 @@ endif
 
 ifeq ($(DEBUG),1)
 CFLAGS+=	-Og -DDEBUG -fno-omit-frame-pointer
-CFLAGS+=	-fsanitize=address
-LDFLAGS+=	-fsanitize=address
+ifeq ($(SYSARCH),x86_64)
+CFLAGS+=	-fsanitize=address -fsanitize=undefined
+LDFLAGS+=	-fsanitize=address -fsanitize=undefined
+endif
 else
 CFLAGS+=	-DNDEBUG
 endif
