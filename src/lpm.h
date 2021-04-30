@@ -8,7 +8,9 @@
 #ifndef _LPM_H_
 #define _LPM_H_
 
-__BEGIN_DECLS
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct lpm lpm_t;
 typedef void (*lpm_dtor_t)(void *, const void *, size_t, void *);
@@ -23,6 +25,8 @@ void *		lpm_lookup(lpm_t *, const void *, size_t);
 void *		lpm_lookup_prefix(lpm_t *, const void *, size_t, unsigned);
 int		lpm_strtobin(const char *, void *, size_t *, unsigned *);
 
-__END_DECLS
+#ifdef __cplusplus
+}
+#endif
 
 #endif
