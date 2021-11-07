@@ -1,0 +1,67 @@
+name: CI
+on:
+    pull_request:
+    push:
+        branches:
+            - "master"
+    workflow_dispatch:
+jobs:
+    build:
+        runs-on: ubuntu-20.04
+        name: Build on ${{ matrix.arch }} using ${{ matrix.cc }}
+
+        strategy:
+            matrix:
+                cc:
+                    - "gcc"
+                    - "clang"
+                arch:
+                    - "amd64"
+                    - "aarch64"
+                    - "ppc64le"
+        steps:
+            -   uses: actions/checkout@v2
+            -   uses: uraimo/run-on-arch-action@v2.1.1
+                if: ${{ matrix.arch != 'amd64' }}
+                name: Build and test
+                with:
+                    arch: ${{ matrix.arch }}
+                    distro: ubuntu20.04
+
+                    githubToken: ${{ github.token }}
+
+                    env: |
+                        CC: ${{ matrix.cc }}
+
+                    install: |
+                        apt-get update -y -q
+                        apt-get install -q -y \
+                            build-essential \
+                            clang \
+                            debhelper \
+                            libtool \
+                            liblua5.1-dev
+
+                    run: |
+                        # Build the package.
+                        (cd pkg && make deb)
+                        # Compile and run the tests.
+                        (cd src && make clean && DEBUG=1 make tests)
+
+            -   name: Build and test
+                if: ${{ matrix.arch == 'amd64' }}
+                env:
+                    CC: ${{ matrix.cc }}
+
+                run: |
+                    sudo apt-get install -q -y \
+                        build-essential \
+                        clang \
+                        debhelper \
+                        libtool \
+                        liblua5.1-dev
+
+                    # Build the package.
+                    (cd pkg && make deb)
+                    # Compile and run the tests.
+                    (cd src && make clean && DEBUG=1 make tests)
