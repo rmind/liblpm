@@ -45,6 +45,24 @@ public class LPMTest {
 		} catch(IllegalArgumentException e) {
 		}
 
+		assertEqual(lpm.lookupPrefix("10.0.0.0/9"), null);
+		assertEqual(lpm.lookupPrefix(InetAddress.getByName("10.0.0.0"), 9), null);
+		assertEqual(lpm.lookupPrefix(new byte[]{10, 0, 0, 0}, 9), null);
+		assertEqual(lpm.lookupPrefix("2001:db8::1/65"), null);
+		assertEqual(lpm.lookupPrefix(InetAddress.getByName("2001:db8::1"), 65), null);
+		assertEqual(lpm.lookupPrefix(new byte[]{
+			127, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 0, 0, 0, 0, 0
+		}, 67), null);
+
+		assertEqual(lpm.lookupPrefix("10.0.0.0/8"), "foo");
+		assertEqual(lpm.lookupPrefix(InetAddress.getByName("10.0.0.0"), 8), "foo");
+		assertEqual(lpm.lookupPrefix(new byte[]{10, 0, 0, 0}, 8), "foo");
+		assertEqual(lpm.lookupPrefix("2001:db8::1/64"), "baz");
+		assertEqual(lpm.lookupPrefix(InetAddress.getByName("2001:db8::1"), 64), "baz");
+		assertEqual(lpm.lookupPrefix(new byte[]{
+			127, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 0, 0, 0, 0, 0
+		}, 66), "raw6");
+
 		assertEqual(lpm.lookup("10.0.1.2"), "foo");
 		assertEqual(lpm.lookup("10.10.3.4"), "bar");
 		assertEqual(lpm.lookup("11.10.3.4"), null);
