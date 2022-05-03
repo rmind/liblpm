@@ -158,6 +158,54 @@ Java_org_netbsd_liblpm_LPM_lookup__J_3B(JNIEnv *env, jobject obj,
 	return ret;
 }
 
+JNIEXPORT jobject JNICALL
+Java_org_netbsd_liblpm_LPM_lookupPrefix__JLjava_lang_String_2
+    (JNIEnv *env, jobject obj, jlong lpm_ref, jstring cidr)
+{
+	lpm_t *lpm = (lpm_t *)lpm_ref;
+	const char *cidr_s;
+	uint32_t addr[4];
+	size_t len;
+	unsigned pref;
+	int ret;
+
+	cidr_s = (*env)->GetStringUTFChars(env, cidr, NULL);
+	if (cidr_s == NULL) {
+		return NULL;
+	}
+	ret = lpm_strtobin(cidr_s, addr, &len, &pref);
+	(*env)->ReleaseStringUTFChars(env, cidr, cidr_s);
+	if (ret != 0) {
+		return NULL;
+	}
+
+	return lpm_lookup_prefix(lpm, addr, len, pref);
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_netbsd_liblpm_LPM_lookupPrefix__J_3BI
+    (JNIEnv *env, jobject obj, jlong lpm_ref, jbyteArray addr_ref, jint pref)
+{
+	lpm_t *lpm = (lpm_t *)lpm_ref;
+	jbyte *addr;
+	size_t len;
+	void *ret;
+
+	len = (*env)->GetArrayLength(env, addr_ref);
+	assert(len == 16 || len == 4);
+
+	addr = (*env)->GetByteArrayElements(env, addr_ref, NULL);
+	if (addr == NULL) {
+		return NULL;
+	}
+
+	ret = lpm_lookup_prefix(lpm, addr, len, pref);
+
+	(*env)->ReleaseByteArrayElements(env, addr_ref, addr, JNI_ABORT);
+
+	return ret;
+}
+
 JNIEXPORT jint JNICALL
 Java_org_netbsd_liblpm_LPM_remove__JLjava_lang_String_2(JNIEnv *env,
     jobject obj, jlong lpm_ref, jstring addr)

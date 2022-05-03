@@ -45,6 +45,8 @@ public class LPM<T> {
 	private native int insert(long lpm, byte[] address, int prefixLength, T value);
 	private native T lookup(long lpm, String addr);
 	private native T lookup(long lpm, byte[] address);
+	private native T lookupPrefix(long lpm, String cidr);
+	private native T lookupPrefix(long lpm, byte[] address, int prefixLength);
 	private native int remove(long lpm, String cidr);
 	private native int remove(long lpm, byte[] address, int prefixLength);
 	private native void clear(long lpm);
@@ -104,6 +106,24 @@ public class LPM<T> {
 	public T lookup(byte[] address) {
 		validateCIDR(address, address.length);
 		return lookup(lpm, address);
+	}
+
+	public T lookupPrefix(String cidr) {
+		if (cidr == null) {
+			throw new IllegalArgumentException(
+				"cidr must not be null");
+		}
+
+		return lookupPrefix(lpm, cidr);
+	}
+
+	public T lookupPrefix(InetAddress inet, int prefixLength) {
+		return lookupPrefix(inet.getAddress(), prefixLength);
+	}
+
+	public T lookupPrefix(byte[] address, int prefixLength) {
+		validateCIDR(address, prefixLength);
+		return lookupPrefix(lpm, address, prefixLength);
 	}
 
 	public boolean remove(String cidr) {
